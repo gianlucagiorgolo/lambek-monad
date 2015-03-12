@@ -44,7 +44,7 @@ Cabal-version:       >=1.8
 
 Library
  build-tools: alex, happy
- other-modules: Parsers, Tokenizer
+ other-modules: Tokenizer
  exposed-modules: TP, DataTypes, XHTML, Parsers
  build-depends: base, containers >= 0.5, mtl >= 2.1.2, xhtml >= 3000.2.1, array >= 0.4.0.1
  ghc-options: -W -O2
