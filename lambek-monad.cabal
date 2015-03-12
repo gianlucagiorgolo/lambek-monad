@@ -42,13 +42,6 @@ Build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 Cabal-version:       >=1.8
 
-Library
- build-tools: alex, happy
- other-modules: Tokenizer
- exposed-modules: TP, DataTypes, XHTML, Parsers
- build-depends: base, containers >= 0.5, mtl >= 2.1.2, xhtml >= 3000.2.1, array >= 0.4.0.1
- ghc-options: -W -O2
-
 Test-Suite test.bin
    type: exitcode-stdio-1.0
    main-is: Test.hs
@@ -57,5 +50,7 @@ Test-Suite test.bin
 
 executable lambek-monad
    main-is: Main.hs
-  -- other-modules:       
-  build-depends:       base ==4.6.*, transformers >= 0.3.0.0, xhtml >= 3000.2.1, blaze-html >= 0.7.0.1, happstack-lite >= 7.3.5, text >= 0.11.3.1, lambek-cg >= 0.1,  mtl >= 2.1.2, containers >= 0.5, array >= 0.4.0.1
+   build-tools: alex, happy
+   other-modules: Tokenizer, TP, DataTypes, XHTML, Parsers
+-- other-modules:       
+  build-depends:       base, transformers >= 0.3.0.0, xhtml >= 3000.2.1, blaze-html >= 0.7.0.1, happstack-lite >= 7.3.5, text >= 0.11.3.1,  mtl >= 2.1.2, containers >= 0.5, array >= 0.4.0.1
