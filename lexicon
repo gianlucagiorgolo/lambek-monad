@@ -1,0 +1,15 @@
+John :: np :: john.
+sleeps :: np \ s :: sleep.
+cat :: n :: cat.
+dog :: n :: dog.
+devours :: (np \ s) / np :: devour.
+a :: (s / (np \ s)) / n :: exist.
+every :: (s / (np \ s)) / n :: forall.
+fucking :: <>n / n :: \X -> <X,(bad X)>.
+believes :: (np \ s) / <>s :: believe.
+doesnt_believe :: (np \ s) / <>s :: not_believe.
+Hesperus :: <>np :: hesperus.
+Phosphorus :: <>np :: phosphorus.
+is :: (np \ s) / np :: is.
+
+
