@@ -1,26 +1,27 @@
 module XHTML where
 
-import Text.XHtml
+import Text.XHtml.Strict
 import Data.List
 import DataTypes
 import Data.Monoid
 import TP
 
-proof2html :: BinTree DecoratedSequent -> Html 
-proof2html (Leaf lab s) = 
-		table << ((tr << "") +++ 
-			  (tr << ((td << hr) +++ (td << lab2html lab))) +++
-			  (tr << td << decoratedSeq2html s))
-proof2html (Unary lab s t) = 
-		table << ((tr << td << proof2html t) +++
-			  (tr << ((td << hr) +++ (td << lab2html lab))) +++
-			  (tr << td << decoratedSeq2html s))
-proof2html (Branch lab l s r) = 
-		table << ((tr << ((td << proof2html l) +++
-			    	  (td << proof2html r))) +++
-  			  (tr << ((td << hr) ! [intAttr "colspan" 2] +++
-				  (td << lab2html lab))) +++
-			  (tr << (td << decoratedSeq2html s) ! [intAttr "colspan" 2]))
+proof2html :: BinTree DecoratedSequent -> Html
+proof2html t = thediv ! [theclass "proof"] << aux t where
+		aux (Leaf lab s) =
+				table << ((tr << "") +++
+					  (tr << ((td << hr) +++ (td << lab2html lab))) +++
+					  (tr << td << decoratedSeq2html s))
+		aux (Unary lab s t) =
+				table << ((tr << td << aux t) +++
+					  (tr << ((td << hr) +++ (td << lab2html lab))) +++
+					  (tr << td << decoratedSeq2html s))
+		aux (Branch lab l s r) =
+				table << ((tr << ((td << aux l) +++
+					    	  (td << aux r))) +++
+		  			  (tr << ((td << hr) ! [intAttr "colspan" 2] +++
+						  (td << lab2html lab))) +++
+					  (tr << (td << decoratedSeq2html s) ! [intAttr "colspan" 2]))
 
 lab2html :: Label -> Html
 lab2html Id = toHtml "id"
@@ -35,10 +36,10 @@ lab2html TensR = primHtml "&otimes;R"
 
 lambda2html :: LambdaTerm -> Html
 lambda2html (C c) = bold << c
-lambda2html (V n) | n < length sanevars && n >= 0 = 
+lambda2html (V n) | n < length sanevars && n >= 0 =
 		   toHtml $ sanevars !! n
                   | otherwise = toHtml $ "v" ++ show n
-lambda2html (Lambda x b) = 
+lambda2html (Lambda x b) =
 	primHtml "&lambda;" +++
 	lambda2html x +++
 	toHtml "." +++
@@ -53,32 +54,32 @@ lambda2html (App f@(Lambda _ _) a) =
 	toHtml ")(" +++
 	lambda2html a +++
 	toHtml ")"
-lambda2html (App f@(Bind _ _) a) = 
+lambda2html (App f@(Bind _ _) a) =
 	toHtml "(" +++
 	lambda2html f +++
 	toHtml ")(" +++
 	lambda2html a +++
 	toHtml ")"
-lambda2html (App f a) = 
+lambda2html (App f a) =
 	lambda2html f +++
 	toHtml "(" +++
 	lambda2html a +++
 	toHtml ")"
-lambda2html (Bind m k) = 
+lambda2html (Bind m k) =
 	lambda2html m +++
 	primHtml " &lowast; " +++
 	lambda2html k
-lambda2html (Pair a b) = 
+lambda2html (Pair a b) =
         primHtml "&lt;" +++
         lambda2html a +++
         toHtml "," +++
         lambda2html b +++
         primHtml "&gt;"
-lambda2html (FirstProjection a) = 
+lambda2html (FirstProjection a) =
         primHtml "&pi;1(" +++
         lambda2html a +++
         toHtml ")"
-lambda2html (SecondProjection a) = 
+lambda2html (SecondProjection a) =
         primHtml "&pi;2(" +++
         lambda2html a +++
         toHtml ")"
@@ -88,7 +89,6 @@ decoratedSeq2html (gamma,c) = mconcat left +++ toHtml " => " +++ f c where
     left = intersperse (toHtml ", ") $ map f gamma
     f (DF _ lt f) = lambda2html (betaReduce $ monadReduce $ etaReduce $ lt) +++ toHtml " : " +++ formula2html f
 
--- |Texifies a formula (now with smart parentheses!)
 formula2html :: Formula -> Html
 formula2html (Atom a) = toHtml a
 formula2html (Var x) = toHtml x
@@ -102,7 +102,7 @@ formula2html (P a b) = toHtml "(" +++ formula2html a +++ primHtml ") &otimes; " 
 formula2html (LI (Atom a) f) = a +++ primHtml " \\ " +++ formula2html f
 formula2html (LI (Var a) f) = a +++ primHtml " \\ " +++ formula2html f
 formula2html (LI d@(M _) f) = formula2html d +++ primHtml " \\ " +++ formula2html f
-formula2html (LI f g) = 
+formula2html (LI f g) =
 		toHtml "(" +++
 		formula2html f +++
 		primHtml ") \\ " +++
@@ -110,9 +110,8 @@ formula2html (LI f g) =
 formula2html (RI (Atom a) f) = formula2html f +++ primHtml " / " +++ a
 formula2html (RI (Var a) f) = formula2html f +++ primHtml " / " +++ a
 formula2html (RI d@(M _) f) = formula2html f +++ primHtml " / " +++ formula2html d
-formula2html (RI f g) = 
+formula2html (RI f g) =
 		toHtml "(" +++
 		formula2html g +++
 		primHtml ") / " +++
 		formula2html f
-
