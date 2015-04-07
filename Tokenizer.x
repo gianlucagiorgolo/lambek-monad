@@ -10,31 +10,32 @@ $upper = [A-Z]
 $lower = [a-z]
 
 tokens :-
-  $white+      ;
-  "::"         { \_ -> Sep }
-  "eta"        { \_ -> Eta }
-  "p1"         { \_ -> P1 }
-  "p2"         { \_ -> P2 }
-  ":*:"        { \_ -> Bind }
-  "=>"         { \_ -> Turnstyle }
-  "<>"         { \_ -> Diamond }
-  "."          { \_ -> Fullstop }
-  ","          { \_ -> Comma }
-  \\           { \_ -> Backslash }
-  "/"          { \_ -> Forwardslash }
-  "("          { \_ -> OpenPar }
-  ")"          { \_ -> ClosedPar }
-  "<"          { \_ -> OpenAngle }
-  ">"          { \_ -> ClosedAngle }
-  "->"         { \_ -> Arrow }
-  "*"          { \_ -> Asterisk }
-  $upper [$alpha $digit \_ \-]* {\s -> Var s}
-  $lower [$alpha $digit \_ \-]* {\s -> Const s}
+  $white+                               ;
+  "::"                                  { \_ -> Sep }
+  "eta"                                 { \_ -> Eta }
+  "p1"                                  { \_ -> P1 }
+  "p2"                                  { \_ -> P2 }
+  ":*:"                                 { \_ -> Bind }
+  "=>"                                  { \_ -> Turnstyle }
+  "<>"                                  { \_ -> Diamond "" }
+  "<" $lower [$alpha $digit \_ \-]* ">" {\s -> Diamond (chopFrontAndBack s) }
+  "."                                   { \_ -> Fullstop }
+  ","                                   { \_ -> Comma }
+  \\                                    { \_ -> Backslash }
+  "/"                                   { \_ -> Forwardslash }
+  "("                                   { \_ -> OpenPar }
+  ")"                                   { \_ -> ClosedPar }
+  "["                                   { \_ -> OpenAngle }
+  "]"                                   { \_ -> ClosedAngle }
+  "->"                                  { \_ -> Arrow }
+  "*"                                   { \_ -> Asterisk }
+  $upper [$alpha $digit \_ \-]*         {\s -> Var s}
+  $lower [$alpha $digit \_ \-]*         {\s -> Const s}
 
 {
 
 data Token = Sep
-           | Diamond
+           | Diamond String
            | Fullstop
            | Comma
            | Backslash
@@ -52,6 +53,8 @@ data Token = Sep
            | P2
            | Var String
            | Const String deriving (Eq,Show)
+
+chopFrontAndBack = reverse . tail . reverse . tail
 
 tokenize = alexScanTokens
 

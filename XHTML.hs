@@ -29,8 +29,8 @@ lab2html LImplL = primHtml "\\ L"
 lab2html LImplR = primHtml "\\ R"
 lab2html RImplL = primHtml "/ L"
 lab2html RImplR = primHtml "/ R"
-lab2html MonL = primHtml "&loz;L"
-lab2html MonR = primHtml "&loz;R"
+lab2html (MonL t) = primHtml $ "&loz;L " ++ t
+lab2html (MonR t) = primHtml $ "&loz;R" ++ t
 lab2html TensL = primHtml "&otimes;L"
 lab2html TensR = primHtml "&otimes;R"
 
@@ -92,16 +92,16 @@ decoratedSeq2html (gamma,c) = mconcat left +++ toHtml " => " +++ f c where
 formula2html :: Formula -> Html
 formula2html (Atom a) = toHtml a
 formula2html (Var x) = toHtml x
-formula2html (M (Atom a)) = primHtml "&loz;" +++ a
-formula2html (M (Var x)) = primHtml "&loz;" +++ x
-formula2html (M f) = primHtml "&loz;(" +++ formula2html f +++ toHtml ")"
+formula2html (M _ (Atom a)) = primHtml "&loz;" +++ a
+formula2html (M _ (Var x)) = primHtml "&loz;" +++ x
+formula2html (M _ f) = primHtml "&loz;(" +++ formula2html f +++ toHtml ")"
 formula2html (P (Atom a) f) = a +++ primHtml " &otimes; " +++ formula2html f
 formula2html (P (Var a) f) = a +++ primHtml " &otimes; " +++ formula2html f
-formula2html (P d@(M _) f) = formula2html d +++ primHtml " &otimes; " +++ formula2html f
+formula2html (P d@(M _ _) f) = formula2html d +++ primHtml " &otimes; " +++ formula2html f
 formula2html (P a b) = toHtml "(" +++ formula2html a +++ primHtml ") &otimes; " +++ formula2html b
 formula2html (LI (Atom a) f) = a +++ primHtml " \\ " +++ formula2html f
 formula2html (LI (Var a) f) = a +++ primHtml " \\ " +++ formula2html f
-formula2html (LI d@(M _) f) = formula2html d +++ primHtml " \\ " +++ formula2html f
+formula2html (LI d@(M _ _) f) = formula2html d +++ primHtml " \\ " +++ formula2html f
 formula2html (LI f g) =
 		toHtml "(" +++
 		formula2html f +++
@@ -109,7 +109,7 @@ formula2html (LI f g) =
 		formula2html g
 formula2html (RI (Atom a) f) = formula2html f +++ primHtml " / " +++ a
 formula2html (RI (Var a) f) = formula2html f +++ primHtml " / " +++ a
-formula2html (RI d@(M _) f) = formula2html f +++ primHtml " / " +++ formula2html d
+formula2html (RI d@(M _ _) f) = formula2html f +++ primHtml " / " +++ formula2html d
 formula2html (RI f g) =
 		toHtml "(" +++
 		formula2html g +++

@@ -8,6 +8,7 @@ import           Data.Maybe          (fromMaybe)
 import           Data.Monoid
 import           Data.Text           (Text)
 import           Data.Text.Lazy      (unpack)
+import           Data.Char
 import           DataTypes
 import           Happstack.Lite
 import           Parsers
@@ -15,6 +16,8 @@ import           Paths_lambek_cg
 import           Text.XHtml.Strict
 import           TP
 import           XHTML
+
+
 
 data Resources = Resources { lexicon   :: String
                            , css_style :: Html
@@ -30,11 +33,12 @@ loadResources = do
   cssFile <- getDataFileName "data/style.css"
   lex <- readFile lexFile -- >> \s -> return $ parseLexicon s
   css <- readFile cssFile >>= \s -> return $ primHtml s
-  return $ Resources lex css [] "John doesnt_believe Hesperus is Phosphorus => <>s"
+  return $ Resources lex css [] "John doesnt_believe Hesperus is Phosphorus => <p>s"
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
                    body << inputAreaTemplate res +++
+                           hr +++
                            proofsAreaTemplate res
 
 inputAreaTemplate :: Resources -> Html
@@ -48,20 +52,21 @@ inputAreaTemplate res = cont << (lex +++ sent) where
                    , name "lexicon"
                    , rows "20"
                    , cols "80" ] << primHtml (Main.lexicon res)
-  sent = h1 (primHtml "Lexicon") +++
-         input ! [ theclass "mono_textarea"
-                 , thetype "text"
-                 , name "sentence"
-                 , value (sentence res)
-                 , size "80"] +++
+  sent = h1 (primHtml "Sentence to parse") +++
+         textarea ! [ theclass "mono_textarea"
+                    , thetype "text"
+                    , name "sentence"
+                    , rows "1"
+                    , cols "80"] << primHtml (sentence res) +++
          input ! [ thetype "submit"
                  , name "submit"
                  , value "Parse" ]
 
 proofsAreaTemplate :: Resources -> Html
 proofsAreaTemplate res = proofsTitle +++ ps where
-  proofsTitle = h1 << (primHtml $ (show $ length $ Main.proofs res) ++ " proof(s)")
+  proofsTitle = h3 << (primHtml $ (show $ length $ Main.proofs res) ++ " proof(s) for \"" ++ (cleanUpSentence $ sentence res) ++"\"" )
   ps = mconcat $ map proof2html $ Main.proofs res
+  cleanUpSentence s = reverse $ dropWhile isSpace $ reverse $ takeWhile (/= '=') s
 
 homePage :: Resources -> ServerPart Response
 homePage res = msum [ viewForm, processForm ]

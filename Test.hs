@@ -2,16 +2,18 @@ module Main where
 
 import Test.HUnit
 import System.Exit
-import qualified Data.Set as Set 
+import qualified Data.Set as Set
 
 import DataTypes
 import TP
+import Parsers
 
 tests = TestList [ testUnfocus
                  , testCreateAllContextLessFocuses
                  , testCreateAllLeftContextFocuses
                  , testCreateAllRightContextFocuses
-                 , testProvable ]
+                 , testProvable
+                 , testParseFormula ]
 
 testUnfocus = "unfocus" ~: TestList
     [ unfocus (ContextLess [] 1 []) ~?= [1]
@@ -24,7 +26,7 @@ testCreateAllContextLessFocuses = "createAllContextLessFocuses" ~: TestList
     , createAllContextLessFocuses [1] ~?:= [ContextLess [] 1 []]
     , createAllContextLessFocuses [1,2] ~?:= [ContextLess [] 1 [2], ContextLess [1] 2 []]
     , createAllContextLessFocuses [1,2,3,4,5] ~?:= [ContextLess [] 1 [2,3,4,5], ContextLess [1] 2 [3,4,5], ContextLess [1,2] 3 [4,5], ContextLess [1,2,3] 4 [5], ContextLess [1,2,3,4] 5 []]]
-    
+
 testCreateAllLeftContextFocuses = "createAllLeftContextFocuses" ~: TestList
     [ createAllLeftContextFocuses [] ~?= ([] :: [Focused Int])
     , createAllLeftContextFocuses [1] ~?:= [LeftContext [] [] 1 []]
@@ -38,7 +40,7 @@ testCreateAllRightContextFocuses = "createAllRightContextFocuses" ~: TestList
     , createAllRightContextFocuses [1,2,3] ~?:= [RightContext [] 1 [2,3] [], RightContext [] 1 [2] [3], RightContext [] 1 [] [2,3], RightContext [1] 2 [3] [], RightContext [1] 2 [] [3], RightContext[1,2] 3 [] []]]
 
 (~?:=) :: (Ord a, Show a) => [a] -> [a] -> Test
-l ~?:= r = Set.fromList l ~?= Set.fromList r 
+l ~?:= r = Set.fromList l ~?= Set.fromList r
 
 testProvable = "provable" ~: TestList
     [ provable ([Atom "a"],Atom "a") ~?= True
@@ -47,6 +49,13 @@ testProvable = "provable" ~: TestList
     , provable ([LI (Atom "a") (Atom "b"),Atom "a"], Atom "b") ~?= False
     , provable ([RI (Atom "a") (Atom "b"),Atom "a"], Atom "b") ~?= True
     , provable ([Atom "a",RI (Atom "a") (Atom "b")], Atom "b") ~?= False ]
+
+testParseFormula = "parseFormula" ~: TestList
+    [ parseFormula "a" ~?= (Atom "a")
+    , parseFormula "a / b" ~?= (RI (Atom "b") (Atom "a"))
+    , parseFormula "a \\ b" ~?= (LI (Atom "a") (Atom "b"))
+    , parseFormula "<m> a" ~?= (M "m" (Atom "a"))
+    , parseFormula "<m>a / b" ~?= (RI (Atom "b") (M "m" (Atom "a"))) ]
 
 
 testAll = runTestTT tests

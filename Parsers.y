@@ -18,7 +18,7 @@ import qualified DataTypes as DT
 
 %token
     sep { Sep }
-    diamond { Diamond }
+    diamond { Diamond $$ }
     fullstop { Fullstop }
     comma { Comma }
     backslash { Backslash }
@@ -44,7 +44,7 @@ import qualified DataTypes as DT
 %%
 
 Formula : openpar Formula closedpar { $2 }
-        | diamond Formula { DT.M $2 }
+        | diamond Formula { DT.M $1 $2 }
         | Formula asterisk Formula { DT.P $1 $3 }
         | Formula forwardslash Formula { DT.RI $3 $1 }
         | Formula backslash Formula { DT.LI $1 $3 }
@@ -100,7 +100,7 @@ getVarId s = do
         i <- return $ counter st
         put $ ParserState (Map.insert s i $ bindings st) (i+1)
         return i
-     Just i -> return i 
+     Just i -> return i
 
 parseError :: [Token] -> a
 parseError toks = error $ "Parse error: " ++ show toks

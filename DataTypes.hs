@@ -9,10 +9,12 @@ import Data.Traversable
 import Data.Functor
 import Control.Applicative
 
-data Formula = Atom String 
-             | Var String 
-             | M Formula 
-             | P Formula Formula 
+type Type = String
+
+data Formula = Atom String
+             | Var String
+             | M Type Formula
+             | P Formula Formula
              | LI Formula Formula
              | RI Formula Formula deriving (Eq, Show, Ord)
 
@@ -70,7 +72,7 @@ data BinTree a = Branch Label (BinTree a) a (BinTree a)
 instance Foldable BinTree where
   foldMap f (Leaf _ a) = f a
   foldMap f (Unary _ a c) = f a `mappend` foldMap f c
-  foldMap f (Branch _ l a r) = foldMap f l `mappend` f a `mappend` foldMap f r                     
+  foldMap f (Branch _ l a r) = foldMap f l `mappend` f a `mappend` foldMap f r
 instance Functor BinTree where
   fmap f (Leaf l a) = Leaf l (f a)
   fmap f (Unary l a c) = Unary l (f a) (fmap f c)
@@ -98,18 +100,18 @@ data Label = Id
            | RImplR
            | TensL
            | TensR
-           | MonL 
-           | MonR deriving (Eq, Show)
+           | MonL Type
+           | MonR Type deriving (Eq, Show)
 
 -- Curry Howard
 
 data LambdaTerm = V Int
                 | C String
                 | Lambda LambdaTerm LambdaTerm -- this definition sucks because we want only variables but it'll do for now
-                | App LambdaTerm LambdaTerm 
+                | App LambdaTerm LambdaTerm
                 | Pair LambdaTerm LambdaTerm
                 | FirstProjection LambdaTerm
-                | SecondProjection LambdaTerm                              
+                | SecondProjection LambdaTerm
                 | Eta LambdaTerm
                 | Bind LambdaTerm LambdaTerm deriving (Eq, Show, Ord) -- also this one is a poor definition
 

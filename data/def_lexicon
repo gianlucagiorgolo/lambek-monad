@@ -5,11 +5,11 @@ dog            :: n                  :: dog.
 devours        :: (np \ s) / np      :: devour.
 a              :: (s / (np \ s)) / n :: exist.
 every          :: (s / (np \ s)) / n :: forall.
-fucking        :: <>n / n            :: \X -> <X,(bad X)>.
-believes       :: (np \ s) / <>s     :: believe.
-doesnt_believe :: (np \ s) / <>s     :: not_believe.
-Hesperus       :: <>np               :: hesperus.
-Phosphorus     :: <>np               :: phosphorus.
+fucking        :: <ci>n / n          :: \X -> [X,(bad X)].
+believes       :: (np \ s) / <p>s    :: believe.
+doesnt_believe :: (np \ s) / <p>s    :: not_believe.
+Hesperus       :: <p>np              :: hesperus.
+Phosphorus     :: <p>np              :: phosphorus.
 is             :: (np \ s) / np      :: is.
 ugly           :: n/n                :: ugly.
 and            :: X \ (X / X)        :: and.

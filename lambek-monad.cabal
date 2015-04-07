@@ -47,12 +47,13 @@ data-files: data/style.css, data/def_lexicon
 Test-Suite test.bin
    type: exitcode-stdio-1.0
    main-is: Test.hs
-   build-depends: base, HUnit >= 1.2.5.2 , containers >= 0.5, mtl >= 2.1.2
-   ghc-options: -W
+   build-tools: alex, happy
+   other-modules: Tokenizer, TP, DataTypes, XHTML, Parsers
+   build-depends: base, HUnit >= 1.2.5.2, transformers >= 0.3.0.0, xhtml >= 3000.2.1, blaze-html >= 0.7.0.1, happstack-lite >= 7.3.5, text >= 0.11.3.1,  mtl >= 2.1.2, containers >= 0.5, array >= 0.4.0.1
 
 executable lambek-monad
    main-is: Main.hs
    build-tools: alex, happy
    other-modules: Tokenizer, TP, DataTypes, XHTML, Parsers
 -- other-modules:
-  build-depends:       base, transformers >= 0.3.0.0, xhtml >= 3000.2.1, blaze-html >= 0.7.0.1, happstack-lite >= 7.3.5, text >= 0.11.3.1,  mtl >= 2.1.2, containers >= 0.5, array >= 0.4.0.1
+   build-depends:       base, transformers >= 0.3.0.0, xhtml >= 3000.2.1, blaze-html >= 0.7.0.1, happstack-lite >= 7.3.5, text >= 0.11.3.1,  mtl >= 2.1.2, containers >= 0.5, array >= 0.4.0.1

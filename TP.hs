@@ -19,7 +19,7 @@ startState :: S
 startState = S (-1) Map.empty
 
 -- |Returns the current state integer and decrease the state by one.
-getAndDec :: NonDeterministicState S Int 
+getAndDec :: NonDeterministicState S Int
 getAndDec = do
     s <- get
     i <- return $ counter s
@@ -50,8 +50,8 @@ toDecoratedWithConstants (gamma,f) = do
     j <- getAndDec
     return $ DF i (V j) f
   return ((map fst gamma',f'),Map.fromList $ map snd gamma')
-                 
--- |Associates two formulae in the variable-formula binding map in the state            
+
+-- |Associates two formulae in the variable-formula binding map in the state
 associate :: Formula -> Formula -> NonDeterministicState S ()
 associate f g = do
   s <- get
@@ -66,7 +66,7 @@ getBinding f = aux f [f] where
    s <- get
    m <- return $ vars s
    res <- return $ Map.lookup f m
-   case res of 
+   case res of
      Nothing -> return Nothing
      Just v@(Var _) -> case Data.List.elem v vs of
                            False -> aux v (v : vs)
@@ -88,7 +88,7 @@ unify v1@(Var _) v2@(Var _) =
                           associate v2 v1
                           return True
                         Just f -> return $ f == g
-unify v@(Var _) f = 
+unify v@(Var _) f =
         do
           binding <- getBinding v
           case binding of
@@ -103,7 +103,7 @@ provable :: Sequent -> Bool
 provable s = not $ null $ evaluateState m startState where
     m = do
       ds <- toDecorated s
-      proofs ds 
+      proofs ds
 
 -- |Returns all the proofs for a given sequent
 proofs :: DecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
@@ -112,19 +112,19 @@ proofs s@(gamma,f) =
                map (\(r,foc) -> r foc) [ (r,(foc,f)) | r <- [i,mL,tL]
                                                      , foc <- createAllContextLessFocuses gamma] ++
                map (\foc -> lIL foc) [(foc,f) | foc <- createAllLeftContextFocuses gamma] ++
-               map (\foc -> rIL foc) [(foc,f) | foc <- createAllRightContextFocuses gamma]               
+               map (\foc -> rIL foc) [(foc,f) | foc <- createAllRightContextFocuses gamma]
 
 -- do
---   every $ map (\r -> r s) [iR,mR,tR] ++ map (\(r,g) -> r g (delete g gamma,f)) 
+--   every $ map (\r -> r s) [iR,mR,tR] ++ map (\(r,g) -> r g (delete g gamma,f))
 --                                          [(r,g) | r <- [i,iL,mL,tL]
 --                                          , g <- gamma]
-  
+
 
 -- |The identity rule
-i :: FocusedDecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent) 
+i :: FocusedDecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
 i (f,a') = do
   guard $ all null $ getContexts f
-  a <- return $ getFocus f 
+  a <- return $ getFocus f
   res <- unify (formula a) (formula a')
   case res of
     False -> failure
@@ -138,7 +138,7 @@ i (f,a') = do
 -- |The left left-implication rule
 -- Y => A  X[B] => C
 -- -----------------
---  X[(Y,A\B)] => C 
+--  X[(Y,A\B)] => C
 
 lIL :: FocusedDecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
 lIL (LeftContext bigXLeft bigY f@(DF _ _ (LI a b)) bigXRight,c) = do
@@ -151,7 +151,7 @@ lIL (LeftContext bigXLeft bigY f@(DF _ _ (LI a b)) bigXRight,c) = do
   (newBigY,a') <- return $ getVal l
   (newBigX, c') <- return $ getVal r
   b' <- return $ lookupFormula b_id newBigX
-  (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders b' newBigX 
+  (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders b' newBigX
   y <- getAndDec >>= \i -> return $ V i
   return $ Branch LImplL l (newBigXLeft ++ newBigY ++ [DF (identifier f) y (LI a b)] ++ newBigXRight ,DF (identifier c') (sub (App y (term a')) (term b') (term c')) (formula c')) r
 lIL _ = failure
@@ -159,7 +159,7 @@ lIL _ = failure
 -- |The left right-implication rule
 -- Y => A  X[B] => C
 -- -----------------
---  X[(B/A,Y)] => C 
+--  X[(B/A,Y)] => C
 
 rIL :: FocusedDecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
 rIL (RightContext bigXLeft f@(DF _ _ (RI a b)) bigY bigXRight,c) = do
@@ -172,7 +172,7 @@ rIL (RightContext bigXLeft f@(DF _ _ (RI a b)) bigY bigXRight,c) = do
   (newBigY,a') <- return $ getVal l
   ((newBigX), c') <- return $ getVal r
   b' <- return $ lookupFormula b_id newBigX
-  (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders b' newBigX 
+  (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders b' newBigX
   y <- getAndDec >>= \i -> return $ V i
   return $ Branch RImplL l (newBigXLeft ++ [DF (identifier f) y (RI a b)] ++ newBigY ++ newBigXRight ,DF (identifier c') (sub (App y (term a')) (term b') (term c')) (formula c')) r
 rIL _ = failure
@@ -183,14 +183,15 @@ rIL _ = failure
 --  X[<>A] => <> B
 
 mL :: FocusedDecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
-mL (ContextLess bigXLeft ma@(DF _ y (M a)) bigXRight, f@(DF j _ (M b))) = do
+mL (ContextLess bigXLeft ma@(DF _ y (M t a)) bigXRight, f@(DF j _ (M t' b))) = do
+  guard (t == t')
   id_a <- getAndDec
   x <- getAndDec >>= \i -> return $ V i
   c <- proofs (bigXLeft ++ [DF id_a x a] ++ bigXRight, f)
   (gamma_and_a,mb) <- return $ getVal c
   a <- return $ lookupFormula id_a gamma_and_a
   (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders a gamma_and_a
-  return $ Unary MonL (newBigXLeft ++ [ma] ++ newBigXRight, DF j (Bind y (Lambda (term a) (term mb))) (M b)) c
+  return $ Unary (MonL t) (newBigXLeft ++ [ma] ++ newBigXRight, DF j (Bind y (Lambda (term a) (term mb))) (M t b)) c
 mL _ = failure
 
 -- |The left tensor rule
@@ -258,12 +259,12 @@ rIR _ = failure
 
 -- |The right diamond rule
 mR :: DecoratedSequent -> NonDeterministicState S (BinTree DecoratedSequent)
-mR (gamma,DF i _ ma@(M a)) = do
+mR (gamma,DF i _ ma@(M t a)) = do
   a_id <- getAndDec
   x <- getAndDec >>= \i -> return $ V i
   c <- proofs (gamma,DF a_id x a)
   (gamma,a) <- return $ getVal c
-  return $ Unary MonR (gamma,DF i (Eta (term a)) ma) c
+  return $ Unary (MonR t) (gamma,DF i (Eta (term a)) ma) c
 mR _ = failure
 
 -- |The right tensor rule
@@ -285,14 +286,14 @@ tR (gamma,DF i _ f@(P a b)) = do
 tR _ = failure
 
 -- |This function searches for a formula in a list of formulae by comparing their unique ids.
--- It's meant to be used only by the left implication and left monad rules. 
+-- It's meant to be used only by the left implication and left monad rules.
 -- Raises an error if no formula with the given id is found
 lookupFormula :: Int -> [DecoratedFormula] -> DecoratedFormula
 lookupFormula _ [] = error "This will never be reached by the rules"
 lookupFormula n (f : rest) | n == (identifier f) = f
                            | otherwise = lookupFormula n rest
 
--- |Substitute a term for another inside a third term (should be the substitution of a variable with a term) 
+-- |Substitute a term for another inside a third term (should be the substitution of a variable with a term)
 sub :: LambdaTerm -> -- the new term
        LambdaTerm -> -- the variable/old term
        LambdaTerm -> -- the context
@@ -341,7 +342,7 @@ sanitizeVars t = fmap sanitize t where
   m = zip (map (\(V i) -> i) $ Set.toList $ collectVars t) [0..]
 
 replaceWithConstants :: BinTree DecoratedSequent -> (Map Int LambdaTerm) -> BinTree DecoratedSequent
-replaceWithConstants t m = fmap (\n -> replaceWithConstantsInNode n m) t             
+replaceWithConstants t m = fmap (\n -> replaceWithConstantsInNode n m) t
 
 replaceWithConstantsInNode :: DecoratedSequent -> (Map Int LambdaTerm) -> DecoratedSequent
 replaceWithConstantsInNode (gamma,f) m = new where
