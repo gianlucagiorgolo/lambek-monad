@@ -30,6 +30,10 @@ td
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; font-style: italic;
   }
 
+.proof{
+  padding: 10px;
+}
+
 .title
 {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
