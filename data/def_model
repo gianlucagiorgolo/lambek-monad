@@ -1,0 +1,13 @@
+relation r x y = r ++ "(" ++ x ++ "," ++ y ++ ")"
+
+john = "john"
+
+is = relation "is"
+
+hesperus "john" = "evening star"
+hesperus _ = "venus"
+
+phosphorus "john" = "morning star"
+phosphorus _ = "venus"
+
+not_believe c s = relation "not_believe" s (c s)

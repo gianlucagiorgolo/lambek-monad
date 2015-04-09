@@ -12,10 +12,12 @@ $lower = [a-z]
 tokens :-
   $white+                               ;
   "::"                                  { \_ -> Sep }
-  "eta"                                 { \_ -> Eta }
+  "eta^" $lower [$alpha $digit \_ \-]*  { \s -> Eta (drop 4 s) }
+  "eta"                                 { \_ -> Eta ""}
   "p1"                                  { \_ -> P1 }
   "p2"                                  { \_ -> P2 }
-  ":*:"                                 { \_ -> Bind }
+  ":*:^" $lower [$alpha $digit \_ \-]*  { \s -> Bind (drop 4 s) }
+  ":*:"                                 { \_ -> Bind ""}
   "=>"                                  { \_ -> Turnstyle }
   "<>"                                  { \_ -> Diamond "" }
   "<" $lower [$alpha $digit \_ \-]* ">" {\s -> Diamond (chopFrontAndBack s) }
@@ -46,9 +48,9 @@ data Token = Sep
            | ClosedAngle
            | Arrow
            | Asterisk
-           | Eta
+           | Eta String
            | Turnstyle
-           | Bind
+           | Bind String
            | P1
            | P2
            | Var String

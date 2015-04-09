@@ -45,8 +45,8 @@ lambda2html (Lambda x b) =
 	lambda2html x +++
 	toHtml "." +++
 	lambda2html b
-lambda2html (Eta f) =
-	primHtml "&eta;(" +++
+lambda2html (Eta t f) =
+	primHtml "&eta;" +++ (Text.XHtml.Strict.sub $ primHtml t) +++ primHtml "(" +++
 	lambda2html f +++
 	toHtml ")"
 lambda2html (App f@(Lambda _ _) a) =
@@ -55,7 +55,7 @@ lambda2html (App f@(Lambda _ _) a) =
 	toHtml ")(" +++
 	lambda2html a +++
 	toHtml ")"
-lambda2html (App f@(Bind _ _) a) =
+lambda2html (App f@(Bind _ _ _) a) =
 	toHtml "(" +++
 	lambda2html f +++
 	toHtml ")(" +++
@@ -66,9 +66,9 @@ lambda2html (App f a) =
 	toHtml "(" +++
 	lambda2html a +++
 	toHtml ")"
-lambda2html (Bind m k) =
+lambda2html (Bind t m k) =
 	lambda2html m +++
-	primHtml " &lowast; " +++
+	primHtml " &lowast;" +++ (Text.XHtml.Strict.sub $ primHtml t) +++ primHtml " " +++
 	lambda2html k
 lambda2html (Pair a b) =
         primHtml "&lt;" +++

@@ -112,15 +112,15 @@ data LambdaTerm = V Int
                 | Pair LambdaTerm LambdaTerm
                 | FirstProjection LambdaTerm
                 | SecondProjection LambdaTerm
-                | Eta LambdaTerm
-                | Bind LambdaTerm LambdaTerm deriving (Eq, Show, Ord) -- also this one is a poor definition
+                | Eta Type LambdaTerm
+                | Bind Type LambdaTerm LambdaTerm deriving (Eq, Show, Ord) -- also this one is a poor definition
 
 data DecoratedFormula = DF { identifier :: Int
                            , term :: LambdaTerm
                            , formula :: Formula } deriving Show
 
 instance Eq DecoratedFormula where
-  f == g = (identifier f) == (identifier g)
+  f == g = identifier f == identifier g
 
 type DecoratedSequent = ([DecoratedFormula],DecoratedFormula)
 
@@ -129,12 +129,13 @@ type FocusedDecoratedSequent = (Focused DecoratedFormula, DecoratedFormula)
 data S = S { counter :: Int
            , vars    :: Map Formula Formula} deriving Show
 
+sanevars :: [String]
 sanevars = ["x","y","z","w","v","k","h","l","m","n","a","b","c","d","e"]
 
 type NonDeterministicState s a = StateT s [] a
 
 failure :: NonDeterministicState s a
-failure = StateT $ \_ -> []
+failure = StateT $ const []
 
 every :: [NonDeterministicState s a] -> NonDeterministicState s a
 every = msum

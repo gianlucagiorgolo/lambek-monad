@@ -31,8 +31,8 @@ import qualified DataTypes as DT
     asterisk { Asterisk }
     var { Var $$ }
     const { Const $$ }
-    eta { Eta }
-    bind { Bind }
+    eta { Eta $$ }
+    bind { Bind $$ }
     p1 { P1 }
     p2 { P2 }
     turnstyle { Turnstyle }
@@ -55,7 +55,7 @@ LambdaTerm : backslash var arrow LambdaTerm {% getVarId $2 >>= \i -> return (DT.
            | openangle LambdaTerm comma LambdaTerm closedangle { DT.Pair $2 $4 }
            | p1 openpar LambdaTerm closedpar { DT.FirstProjection $3 }
            | p2 openpar LambdaTerm closedpar { DT.SecondProjection $3 }
-           | eta openpar LambdaTerm closedpar { DT.Eta $3 }
+           | eta openpar LambdaTerm closedpar { DT.Eta $1 $3 }
            | form { $1 }
 
 form : applications { $1 }
@@ -65,7 +65,7 @@ form : applications { $1 }
 applications : applications atom { DT.App $1 $2 }
              | atom { $1 }
 
-binds : binds bind atom { DT.Bind $1 $3 }
+binds : binds bind atom { DT.Bind $2 $1 $3 }
       | atom { $1 }
 
 atom : openpar LambdaTerm closedpar {$2}

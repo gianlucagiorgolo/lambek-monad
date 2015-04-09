@@ -1,0 +1,18 @@
+{-# LANGUAGE FlexibleInstances #-}
+module Model where
+
+instance (Show b) => Show (String -> b) where
+  show f = show $ f ""
+
+unit_p :: a -> (String -> a)
+unit_p x = const x
+
+bind_p :: (String -> a) -> (a -> String -> b) -> String -> b
+bind_p f g s = g (f s) s
+
+unit_ci :: a -> (a,String)
+unit_ci x = (x,"")
+
+bind_ci :: (a, String) -> (a -> (b,String)) -> (b,String)
+bind_ci (a,s) f = (b,s ++ z) where
+   (b,z) = f a

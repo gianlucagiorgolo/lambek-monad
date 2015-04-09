@@ -191,7 +191,7 @@ mL (ContextLess bigXLeft ma@(DF _ y (M t a)) bigXRight, f@(DF j _ (M t' b))) = d
   (gamma_and_a,mb) <- return $ getVal c
   a <- return $ lookupFormula id_a gamma_and_a
   (newBigXLeft,newBigXRight) <- return $ deleteWithRemainders a gamma_and_a
-  return $ Unary (MonL t) (newBigXLeft ++ [ma] ++ newBigXRight, DF j (Bind y (Lambda (term a) (term mb))) (M t b)) c
+  return $ Unary (MonL t) (newBigXLeft ++ [ma] ++ newBigXRight, DF j (Bind t y (Lambda (term a) (term mb))) (M t b)) c
 mL _ = failure
 
 -- |The left tensor rule
@@ -264,7 +264,7 @@ mR (gamma,DF i _ ma@(M t a)) = do
   x <- getAndDec >>= \i -> return $ V i
   c <- proofs (gamma,DF a_id x a)
   (gamma,a) <- return $ getVal c
-  return $ Unary (MonR t) (gamma,DF i (Eta (term a)) ma) c
+  return $ Unary (MonR t) (gamma,DF i (Eta t (term a)) ma) c
 mR _ = failure
 
 -- |The right tensor rule
@@ -304,8 +304,8 @@ sub new old t@(V _) | t == old = new
 sub new old t@(Lambda v b) | v == old = t
                            | otherwise = Lambda v $ sub new old b
 sub new old (App f a) = App (sub new old f) (sub new old a)
-sub new old (Eta f) = Eta (sub new old f)
-sub new old (Bind m k) = Bind (sub new old m) (sub new old k)
+sub new old (Eta t f) = Eta t (sub new old f)
+sub new old (Bind t m k) = Bind t (sub new old m) (sub new old k)
 sub new old (Pair a b) = Pair (sub new old a) (sub new old b)
 sub new old (FirstProjection a) = FirstProjection $ sub new old a
 sub new old (SecondProjection a) = SecondProjection $ sub new old a
@@ -319,8 +319,8 @@ collectVars t = Set.fromList $ foldMap aux t where
   f (C _) = []
   f (Lambda v t) = f v ++ f t
   f (App g a) = f g ++ f a
-  f (Eta x) = f x
-  f (Bind m k) = f m ++ f k
+  f (Eta _ x) = f x
+  f (Bind _ m k) = f m ++ f k
   f (Pair a b) = f a ++ f b
   f (FirstProjection a) = f a
   f (SecondProjection a) = f a
@@ -329,13 +329,13 @@ collectVars t = Set.fromList $ foldMap aux t where
 sanitizeVars :: BinTree DecoratedSequent -> BinTree DecoratedSequent
 sanitizeVars t = fmap sanitize t where
   sanitize (gamma,f) = (map deepSub gamma,deepSub f)
-  deepSub (DF i lt f) = (DF i (zub lt) f)
+  deepSub (DF i lt f) = DF i (zub lt) f
   zub (V i) = V $ fromJust $ lookup i m
   zub c@(C _) = c
   zub (Lambda x t) = Lambda (zub x) (zub t)
   zub (App f g) = App (zub f) (zub g)
-  zub (Eta x) = Eta (zub x)
-  zub (Bind m k) = (zub m) `Bind` (zub k)
+  zub (Eta t x) = Eta t (zub x)
+  zub (Bind t m k) = Bind t (zub m) (zub k)
   zub (Pair a b) = Pair (zub a) (zub b)
   zub (FirstProjection a) = FirstProjection $ zub a
   zub (SecondProjection a) = SecondProjection $ zub a
@@ -359,8 +359,8 @@ replaceWithConstantsInNode (gamma,f) m = new where
     zub c@(C _) = c
     zub (Lambda x t) = Lambda (zub x) (zub t)
     zub (App f g) = App (zub f) (zub g)
-    zub (Eta x) = Eta (zub x)
-    zub (m `Bind` k) = (zub m) `Bind` (zub k)
+    zub (Eta t x) = Eta t (zub x)
+    zub (Bind t m k) = Bind t (zub m) (zub k)
     zub (Pair a b) = Pair (zub a) (zub b)
     zub (FirstProjection a) = FirstProjection $ zub a
     zub (SecondProjection a) = SecondProjection $ zub a
@@ -374,8 +374,8 @@ alphaEquivalent (V i) (V j) m = case Map.lookup i m of
         Nothing -> i == j
 alphaEquivalent (Lambda (V i) t) (Lambda (V j) u) m = alphaEquivalent t u (Map.insert i j m)
 alphaEquivalent (App t s) (App d z) m = (alphaEquivalent t d m) && (alphaEquivalent s z m)
-alphaEquivalent (Eta t) (Eta d) m = alphaEquivalent t d m
-alphaEquivalent (t `Bind` s) (d `Bind` z) m = (alphaEquivalent t d m) && (alphaEquivalent s z m)
+alphaEquivalent (Eta t x) (Eta t' y) m = t == t' && alphaEquivalent x y m
+alphaEquivalent (Bind t x y) (Bind t' w z) m = t == t' && (alphaEquivalent x w m) && (alphaEquivalent y z m)
 alphaEquivalent (Pair a b) (Pair a' b') m = alphaEquivalent a a' m && alphaEquivalent b b' m
 alphaEquivalent (FirstProjection a) (FirstProjection b) m = alphaEquivalent a b m
 alphaEquivalent (SecondProjection a) (SecondProjection b) m = alphaEquivalent a b m
@@ -419,8 +419,8 @@ etaReduce :: LambdaTerm -> LambdaTerm
 etaReduce c@(C _) = c
 etaReduce v@(V _) = v
 etaReduce (App f g) = App (etaReduce f) (etaReduce g)
-etaReduce (Eta t) = Eta $ etaReduce t
-etaReduce (m `Bind` k) = (etaReduce m) `Bind` (etaReduce k)
+etaReduce (Eta t m) = Eta t $ etaReduce m
+etaReduce (Bind t m k) = Bind t (etaReduce m) (etaReduce k)
 etaReduce (Pair a b) = Pair (etaReduce a) (etaReduce b)
 etaReduce (FirstProjection a) = FirstProjection $ etaReduce a
 etaReduce (SecondProjection a) = SecondProjection $ etaReduce a
@@ -446,27 +446,27 @@ betaReduce t = aux t Map.empty where
                         else
                            aux (App f' x) m
    aux (Lambda x b) m = Lambda (aux x m) (aux b m)
-   aux (Eta t) m = Eta $ aux t m
-   aux (n `Bind` k) m = (aux n m) `Bind` (aux k m)
+   aux (Eta t x) m = Eta t $ aux x m
+   aux (Bind t n k) m = Bind t (aux n m) (aux k m)
    aux (Pair a b) m = Pair (aux a m) (aux b m)
    aux (FirstProjection a) m = FirstProjection $ aux a m
    aux (SecondProjection a) m = SecondProjection $ aux a m
 
 monadReduce :: LambdaTerm -> LambdaTerm
-monadReduce ((Eta t) `Bind` u) = App (monadReduce u) (monadReduce t)
-monadReduce (t `Bind` (Lambda (V i) (Eta (V j)))) | i == j = monadReduce t
-                                               | otherwise = (monadReduce t) `Bind` (Lambda (V i) (Eta (V j)))
+monadReduce (Bind _ (Eta _ t) u) = App (monadReduce u) (monadReduce t) -- here there should be a check on types...
+monadReduce (Bind ty t (Lambda (V i) (Eta ty' (V j)))) | i == j = monadReduce t
+                                                  | otherwise = Bind ty (monadReduce t) (Lambda (V i) (Eta ty' (V j)))
 monadReduce v@(V _) = v
 monadReduce c@(C _) = c
 monadReduce (App t u) = App (monadReduce t) (monadReduce u)
 monadReduce (Lambda x t) = Lambda (monadReduce x) (monadReduce t)
-monadReduce (Eta t) = Eta $ monadReduce t
+monadReduce (Eta t x) = Eta t $ monadReduce x
 monadReduce (Pair a b) = Pair (monadReduce a) (monadReduce b)
 monadReduce (FirstProjection a) = FirstProjection $ monadReduce a
 monadReduce (SecondProjection a) = SecondProjection $ monadReduce a
-monadReduce (t `Bind` u) = let t' = monadReduce t
-                               u' = monadReduce u
-                        in if t == t' && u == u' then
-                               t' `Bind` u'
-                           else
-                               monadReduce (t' `Bind` u')
+monadReduce (Bind ty t u) = let t' = monadReduce t
+                                u' = monadReduce u
+                            in if t == t' && u == u' then
+                                   Bind ty t' u'
+                               else
+                                   monadReduce (Bind ty t' u')
