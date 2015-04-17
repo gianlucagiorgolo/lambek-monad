@@ -5,26 +5,31 @@ module Main where
 import           Control.Applicative (optional, (<$>))
 import Control.Monad.IO.Class
 import           Data.List
-import           Data.Maybe          (fromMaybe)
+import           Data.Maybe          (fromMaybe, isJust, fromJust)
 import           Data.Monoid
+import Data.Either
 import           Data.Text           (Text)
 import           Data.Text.Lazy      (unpack)
 import           Data.Char
 import           DataTypes
 import           Happstack.Lite
 import           Parsers
-import           Paths_lambek_cg
+import           Paths_lambek_monad
 import           Text.XHtml.Strict
 import           TP
 import           XHTML
 import Evaluator
+
+-- for development
+import System.Exit
 
 data Resources = Resources { lexicon   :: String
                            , css_style :: Html
                            , proofs    :: [BinTree DecoratedSequent]
                            , sentence  :: String
                            , model     :: String
-                           , readings  :: [String]}
+                           , readings  :: [String]
+                           , error_msg :: Maybe String }
 
 main = do
   res <- loadResources
@@ -37,7 +42,7 @@ loadResources = do
   lex <- readFile lexFile -- >> \s -> return $ parseLexicon s
   m <- readFile modelFile
   css <- readFile cssFile >>= \s -> return $ primHtml s
-  return $ Resources lex css [] "John doesnt_believe Hesperus is Phosphorus => <p>s" m []
+  return $ Resources lex css [] "John does not believe Hesperus is Phosphorus => <p>s" m [] Nothing
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
@@ -71,6 +76,7 @@ sentenceForm res =
              , cols "80"] << primHtml (sentence res) +++
   input ! [ thetype "submit"
           , name "submit"
+          , theclass "mybutton"
           , value "Parse" ]
 
 modelForm :: Resources -> Html
@@ -81,18 +87,21 @@ modelForm res = h1 (primHtml "Model") +++
                            , cols "80" ] << primHtml (model res)
 
 proofsAreaTemplate :: Resources -> Html
-proofsAreaTemplate res = proofsTitle +++ ps where
+proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ primHtml (fromJust $ error_msg res)
+                       | otherwise = proofsTitle +++ ps where
   proofsTitle = h3 << (primHtml $ (show $ length $ Main.proofs res) ++ " proof(s) for \"" ++ (cleanUpSentence $ sentence res) ++"\"" )
   ps = mconcat $ map f $ zip (Main.proofs res) (readings res)
   cleanUpSentence s = reverse $ dropWhile isSpace $ reverse $ takeWhile (/= '=') s
   f (p,i) = thediv ! [theclass "proof"] << (lterm p +++ reading i +++ proof p) where
     proof = proof2html
     lterm p = h3 << (lambda2html . betaReduce . monadReduce . etaReduce . term . snd . getVal) p
-    reading i = h3 << primHtml i
+    reading i = thediv ! [ theclass "model_evaluation_result" ] << thecode << primHtml i
+
 
 homePage :: Resources -> ServerPart Response
-homePage res = msum [ viewForm, processForm ]
+homePage res = msum [ viewForm, processForm, dir "quit" quit ]
    where
+     quit = liftIO exitSuccess
      viewForm :: ServerPart Response
      viewForm =
          do Happstack.Lite.method GET
@@ -106,11 +115,20 @@ homePage res = msum [ viewForm, processForm ]
             m <- lookText "model"
             lex <- return $ parseLexicon $ unpack raw_lex
             seq <- return $ parseSequent (unpack sent) lex
-            ps <- return $ evaluateState (toDecoratedWithConstants seq >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
+            if isLeft seq then
+              ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = [], sentence= unpack sent, model = unpack m, readings = [], error_msg = Just $ fromLeft seq}
+              else do
+            ps <- return $ evaluateState (toDecoratedWithConstants (fromRight seq) >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
             ps <- return $ nubByShortest (lambdaTermLength . term . snd . getVal) (\x y -> simplifiedEquivalentDecoratedSequent (getVal x) (getVal y)) $ map sanitizeVars ps
             rs <- mapM (\p -> liftIO $ evaluate (unpack m) (term $ snd $ getVal p)) ps
             ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = ps, sentence= unpack sent, model = unpack m, readings = rs}
 
+
+fromLeft :: Either a b -> a
+fromLeft (Left a) = a
+
+fromRight :: Either a b -> b
+fromRight (Right b) = b
 
 lambdaTermLength :: LambdaTerm -> Int
 lambdaTermLength (V _) = 1

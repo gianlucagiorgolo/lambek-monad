@@ -11,6 +11,7 @@ $lower = [a-z]
 
 tokens :-
   $white+                               ;
+  "#".*                                 ;
   "::"                                  { \_ -> Sep }
   "eta^" $lower [$alpha $digit \_ \-]*  { \s -> Eta (drop 4 s) }
   "eta"                                 { \_ -> Eta ""}

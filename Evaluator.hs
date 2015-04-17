@@ -4,7 +4,7 @@ import Language.Haskell.Interpreter
 import System.Directory
 import DataTypes
 import System.FilePath
-import Paths_lambek_cg
+import Paths_lambek_monad
 
 -- | @eval model term@ evaluates the lambda term given the model module
 evaluate :: String -> LambdaTerm -> IO String

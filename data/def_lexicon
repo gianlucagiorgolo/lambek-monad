@@ -1,3 +1,4 @@
+# Standard stuff
 John           :: np                 :: john.
 sleeps         :: np \ s             :: sleep.
 cat            :: n                  :: cat.
@@ -5,11 +6,29 @@ dog            :: n                  :: dog.
 devours        :: (np \ s) / np      :: devour.
 a              :: (s / (np \ s)) / n :: exist.
 every          :: (s / (np \ s)) / n :: forall.
-fucking        :: <ci>n / n          :: \X -> [X,(bad X)].
-believes       :: (np \ s) / <p>s    :: believe.
-doesnt_believe :: (np \ s) / <p>s    :: not_believe.
-Hesperus       :: <p>np              :: hesperus.
-Phosphorus     :: <p>np              :: phosphorus.
 is             :: (np \ s) / np      :: is.
 ugly           :: n/n                :: ugly.
-and            :: X \ (X / X)        :: and.
+and            :: s \ (s / s)        :: conjunction.
+Germany        :: np                 :: germany.
+Spain          :: np                 :: spain.
+France         :: np                 :: france.
+Brazil         :: np                 :: brazil.
+not            :: (np \ s) /
+                  (np \ s)           :: neg.
+does           :: (np \ s) /
+                  (np \ s)           :: \X -> X.
+
+
+# Perspectives
+believe        :: (np \ s) / <p>s    :: believe.
+Hesperus       :: <p>np              :: hesperus.
+Phosphorus     :: <p>np              :: phosphorus.
+
+# Conventional implicatures
+fucking        :: <ci>n / n          :: fucking.
+
+# Standard Probability
+will_beat      :: (np \ <pr>s) / np  :: will_beat.
+
+# Likelihood
+will_crush     :: (np \ <lh>s) / np  :: will_crush.

@@ -3,6 +3,7 @@ module Parsers where
 
 import Control.Monad.State
 import qualified Data.Map as Map
+import Data.Either
 
 import Tokenizer
 import qualified DataTypes as DT
@@ -111,11 +112,14 @@ parseLambdaTerm s = evalState (lambdaTerm $ tokenize s) initialState
 
 parseLexicon s = evalState (lexicon $ tokenize s) initialState
 
-parseSequent s lex = (lhs,rhs) where
+parseSequent :: String -> DT.Lexicon -> Either String ([(DT.LambdaTerm, DT.Formula)], DT.Formula)
+parseSequent s lex = res where
    (ws,rhs) = evalState (sequent $ tokenize s) initialState
    lhs = map f ws
+   res = if null (lefts lhs) then Right (rights lhs, rhs)
+          else Left $ "These words are not defined in the lexicon: " ++ show (lefts lhs)
    f w = case lookup w lex of
-           Nothing -> error "Unknown word"
-           Just (form,term) -> (term,form)
+           Nothing -> Left $ w
+           Just (form,term) -> Right (term,form)
 
 }

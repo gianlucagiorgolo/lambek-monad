@@ -1,13 +1,34 @@
-relation r x y = r ++ "(" ++ x ++ "," ++ y ++ ")"
-
-john = "john"
+john = "John"
 
 is = relation "is"
 
-hesperus "john" = "evening star"
-hesperus _ = "venus"
+conjunction = relation "and"
 
-phosphorus "john" = "morning star"
-phosphorus _ = "venus"
+hesperus "john" = "Evening Star"
+hesperus _ = "Venus"
 
-not_believe c s = relation "not_believe" s (c s)
+phosphorus "john" = "Morning Star"
+phosphorus _ = "Venus"
+
+believe c s = relation "believe" s (c s)
+
+forall r p = "forall(X," ++ r "X" ++ "," ++ p "X" ++ ")"
+
+neg p x = "not(" ++ p x ++ ")"
+
+fucking p = bind_ci (write (forall p (predicate "bad"))) (\_ -> unit_ci p)
+
+will_beat obj subj = Probability [(relation "beat" obj subj,p),(relation "beat" subj obj,1.0 - p)] where
+    p = predictVictory subj obj
+
+-- will_crush obj subj = Likelihood [(relation "crush" obj subj,StMinMax p),(relation "crush" subj obj,StMinMax $ 1.0 - p)] where
+--   p = predictVictory subj obj
+
+will_crush obj subj = Likelihood [(relation "crush" obj subj,toSimpleSemiring p),(relation "crush" subj obj,toSimpleSemiring $ 1.0 - p)] where
+    p = predictVictory subj obj
+
+
+germany = "Germany"
+spain = "Spain"
+france = "France"
+italy = "Italy"
