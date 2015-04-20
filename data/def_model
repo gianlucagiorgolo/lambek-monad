@@ -4,10 +4,10 @@ is = relation "is"
 
 conjunction = relation "and"
 
-hesperus "john" = "Evening Star"
+hesperus "John" = "Evening Star"
 hesperus _ = "Venus"
 
-phosphorus "john" = "Morning Star"
+phosphorus "John" = "Morning Star"
 phosphorus _ = "Venus"
 
 believe c s = relation "believe" s (c s)
