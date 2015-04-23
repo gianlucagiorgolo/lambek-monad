@@ -11,8 +11,8 @@ ugly           :: n/n                :: ugly.
 and            :: s \ (s / s)        :: conjunction.
 Germany        :: np                 :: germany.
 Spain          :: np                 :: spain.
-France         :: np                 :: france.
-Brazil         :: np                 :: brazil.
+Canada         :: np                 :: canada.
+Nigeria        :: np                 :: nigeria.
 not            :: (np \ s) /
                   (np \ s)           :: neg.
 does           :: (np \ s) /

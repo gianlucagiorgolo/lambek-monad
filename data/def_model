@@ -18,17 +18,22 @@ neg p x = "not(" ++ p x ++ ")"
 
 fucking p = bind_ci (write (forall p (predicate "bad"))) (\_ -> unit_ci p)
 
-will_beat obj subj = Probability [(relation "beat" obj subj,p),(relation "beat" subj obj,1.0 - p)] where
-    p = predictVictory subj obj
+will_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
+                                 ,(relation "drawsWith" subj obj,d)
+                                 ,(relation "losesAgainst" subj obj,l)] where
+                                    v = predictVictory subj obj
+                                    d = predictDraw subj obj
+                                    l = predictLoss subj obj
 
--- will_crush obj subj = Likelihood [(relation "crush" obj subj,StMinMax p),(relation "crush" subj obj,StMinMax $ 1.0 - p)] where
---   p = predictVictory subj obj
-
-will_crush obj subj = Likelihood [(relation "crush" obj subj,toSimpleSemiring p),(relation "crush" subj obj,toSimpleSemiring $ 1.0 - p)] where
-    p = predictVictory subj obj
-
+will_crush obj subj =
+  Likelihood [(relation "winsAgainst" subj obj,toSimpleSemiring v)
+             ,(relation "drawsWith" subj obj,toSimpleSemiring d)
+             ,(relation "losesAgainst" subj obj,toSimpleSemiring l)] where
+                v = predictVictory subj obj
+                d = predictDraw subj obj
+                l = predictLoss subj obj
 
 germany = "Germany"
 spain = "Spain"
-france = "France"
-italy = "Italy"
+canada = "Canada"
+nigeria = "Nigeria"

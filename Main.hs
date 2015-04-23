@@ -95,7 +95,7 @@ proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ 
   f (p,i) = thediv ! [theclass "proof"] << (lterm p +++ reading i +++ proof p) where
     proof = proof2html
     lterm p = h3 << (lambda2html . betaReduce . monadReduce . etaReduce . term . snd . getVal) p
-    reading i = thediv ! [ theclass "model_evaluation_result" ] << thecode << primHtml i
+    reading i = thediv ! [ theclass "model_evaluation_result" ] << pre << primHtml i
 
 
 homePage :: Resources -> ServerPart Response
