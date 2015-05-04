@@ -17,6 +17,9 @@ forall r p = "forall(X," ++ r "X" ++ "," ++ p "X" ++ ")"
 neg p x = "not(" ++ p x ++ ")"
 
 fucking p = bind_ci (write (forall p (predicate "bad"))) (\_ -> unit_ci p)
+motherfucking x = bind_ci (write (predicate "bad" x)) (\_ -> unit_ci x)
+
+
 
 will_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
                                  ,(relation "drawsWith" subj obj,d)

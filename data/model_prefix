@@ -21,15 +21,22 @@ instance (Show b) => Show (Perspective b) where
 
 -- Conventional implicatures monad
 
-unit_ci :: a -> (a,String)
-unit_ci x = (x,"")
+data CI a = CI a String
 
-bind_ci :: (a, String) -> (a -> (b,String)) -> (b,String)
-bind_ci (a,s) f = (b,s ++ z) where
-   (b,z) = f a
+unit_ci :: a -> CI a
+unit_ci x = CI x ""
 
-write :: String -> ((),String)
-write x = ((),x)
+bind_ci :: CI a -> (a -> CI b) -> CI b
+bind_ci (CI a s) f = CI b (combine s z) where
+   CI b z = f a
+   combine "" x = x
+   combine x "" = x
+   combine x y = x ++ "\n" ++ y
+write :: String -> CI ()
+write x = CI () x
+
+instance Show a => Show (CI a) where
+  show (CI a s) = "AT-ISSUE:\n" ++ show a ++ "\n\nSIDE COMMENT:\n" ++ s
 
 -- Standard probability monad
 

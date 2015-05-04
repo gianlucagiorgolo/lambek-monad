@@ -55,10 +55,47 @@ data Token = Sep
            | P1
            | P2
            | Var String
-           | Const String deriving (Eq,Show)
+           | Const String deriving (Eq)
+
+instance Show Token where
+  show Sep = "::"
+  show (Diamond s) = "<" ++ s ++ ">"
+  show Fullstop = "."
+  show Comma = ","
+  show Backslash = "\\"
+  show Forwardslash = "/"
+  show OpenPar = "("
+  show ClosedPar = ")"
+  show OpenAngle = "["
+  show ClosedAngle = "]"
+  show Arrow = "->"
+  show Asterisk = "*"
+  show (Eta "") = "eta"
+  show (Eta s) = "eta^" ++ s
+  show Turnstyle = "=>"
+  show (Bind "") = ":*:"
+  show (Bind s) = ":*:^" ++ s
+  show P1 = "p1"
+  show P2 = "p2"
+  show (Var s) = s
+  show (Const s) = s
+
+toHtml :: Token -> String
+toHtml (Diamond s) = "&lt;" ++ s ++ "&gt;"
+toHtml t = show t
 
 chopFrontAndBack = reverse . tail . reverse . tail
 
-tokenize = alexScanTokens
+tokenize :: String -> Either String [Token]
+tokenize str = go ('\n',[],str)
+  where go inp@(_,_bs,str) =
+          case alexScan inp 0 of
+                AlexEOF -> Right []
+                AlexError inp' -> Left $ "I encountered an error while I was trying to tokenize this stuff:\n" ++ str
+                AlexSkip  inp' len     -> go inp'
+                AlexToken inp' len act -> do
+                  h <- return $ act (take len str)
+                  t <- go inp'
+                  return $ h : t
 
 }

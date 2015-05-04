@@ -87,7 +87,7 @@ modelForm res = h1 (primHtml "Model") +++
                            , cols "80" ] << primHtml (model res)
 
 proofsAreaTemplate :: Resources -> Html
-proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ primHtml (fromJust $ error_msg res)
+proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ pre << primHtml (fromJust $ error_msg res)
                        | otherwise = proofsTitle +++ ps where
   proofsTitle = h3 << (primHtml $ (show $ length $ Main.proofs res) ++ " proof(s) for \"" ++ (cleanUpSentence $ sentence res) ++"\"" )
   ps = mconcat $ map f $ zip (Main.proofs res) (readings res)
@@ -114,7 +114,12 @@ homePage res = msum [ viewForm, processForm, dir "quit" quit ]
             sent <- lookText "sentence"
             m <- lookText "model"
             lex <- return $ parseLexicon $ unpack raw_lex
-            seq <- return $ parseSequent (unpack sent) lex
+            -- we verify the lexicon
+            if isLeft lex then
+              ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = [], sentence= unpack sent, model = unpack m, readings = [], error_msg = Just $ fromLeft lex}
+              else do
+            seq <- return $ parseSequent (unpack sent) $ fromRight lex
+            -- we verify the sequent
             if isLeft seq then
               ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = [], sentence= unpack sent, model = unpack m, readings = [], error_msg = Just $ fromLeft seq}
               else do
@@ -122,6 +127,8 @@ homePage res = msum [ viewForm, processForm, dir "quit" quit ]
             ps <- return $ nubByShortest (lambdaTermLength . term . snd . getVal) (\x y -> simplifiedEquivalentDecoratedSequent (getVal x) (getVal y)) $ map sanitizeVars ps
             rs <- mapM (\p -> liftIO $ evaluate (unpack m) (term $ snd $ getVal p)) ps
             ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = ps, sentence= unpack sent, model = unpack m, readings = rs}
+
+
 
 
 fromLeft :: Either a b -> a

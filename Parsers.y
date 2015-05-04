@@ -4,6 +4,7 @@ module Parsers where
 import Control.Monad.State
 import qualified Data.Map as Map
 import Data.Either
+import Data.List
 
 import Tokenizer
 import qualified DataTypes as DT
@@ -15,7 +16,7 @@ import qualified DataTypes as DT
 %name sequent Sequent
 %tokentype { Token }
 %error { parseError }
-%monad { State ParserState }
+%monad { StateT ParserState (Either String) }
 
 %token
     sep { Sep }
@@ -93,7 +94,6 @@ data ParserState = ParserState { bindings :: Map.Map String Int
 
 initialState = ParserState Map.empty 0
 
-getVarId :: String -> State ParserState Int
 getVarId s = do
   st <- get
   case Map.lookup s (bindings st) of
@@ -103,23 +103,26 @@ getVarId s = do
         return i
      Just i -> return i
 
-parseError :: [Token] -> a
-parseError toks = error $ "Parse error: " ++ show toks
 
-parseFormula s = evalState (formula $ tokenize s) initialState
+parseError toks = StateT $ \_ -> Left $ "Parse error at this point:\n" ++ intercalate " " (map toHtml toks)
 
-parseLambdaTerm s = evalState (lambdaTerm $ tokenize s) initialState
+-- parseFormula s = evalState (formula $ tokenize s) initialState
 
-parseLexicon s = evalState (lexicon $ tokenize s) initialState
+-- parseLambdaTerm s = evalState (lambdaTerm $ tokenize s) initialState
+
+parseLexicon s = do
+  toks <- tokenize s
+  evalStateT (lexicon toks) initialState
 
 parseSequent :: String -> DT.Lexicon -> Either String ([(DT.LambdaTerm, DT.Formula)], DT.Formula)
-parseSequent s lex = res where
-   (ws,rhs) = evalState (sequent $ tokenize s) initialState
-   lhs = map f ws
-   res = if null (lefts lhs) then Right (rights lhs, rhs)
-          else Left $ "These words are not defined in the lexicon: " ++ show (lefts lhs)
-   f w = case lookup w lex of
-           Nothing -> Left $ w
-           Just (form,term) -> Right (term,form)
+parseSequent s lex = do
+  toks <- tokenize s
+  (ws,rhs) <- evalStateT (sequent toks) initialState
+  f <- return $ \w -> case lookup w lex of
+                        Nothing -> Left $ w
+                        Just (form,term) -> Right (term,form)
+  lhs <- return $ map f ws
+  if null (lefts lhs) then Right (rights lhs, rhs)
+   else Left $ "These words are not defined in the lexicon: " ++ show (lefts lhs)
 
 }
