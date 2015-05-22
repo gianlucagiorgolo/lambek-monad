@@ -42,7 +42,7 @@ Build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 Cabal-version:       >=1.8
 
-data-files: data/style.css, data/def_lexicon, data/def_model, data/model_prefix
+data-files: data/style.css, data/def_lexicon, data/def_model, data/model_prefix, data/day1_lexicon, data/day1_model, data/day2_lexicon, data/day2_model, data/day3_lexicon, data/day3_model, data/day4_lexicon, data/day4_model, data/day5_lexicon, data/day5_model
 
 Test-Suite test.bin
    type: exitcode-stdio-1.0

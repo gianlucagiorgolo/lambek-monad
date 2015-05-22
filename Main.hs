@@ -29,24 +29,26 @@ data Resources = Resources { lexicon   :: String
                            , sentence  :: String
                            , model     :: String
                            , readings  :: [String]
-                           , error_msg :: Maybe String }
+                           , error_msg :: Maybe String
+                           , baseDir   :: String }
 
 main = do
-  res <- loadResources
-  serve Nothing (homePage res)
+  serve Nothing homePage
 
-loadResources = do
-  lexFile <- getDataFileName "data/def_lexicon"
+loadResources :: String -> String -> String -> IO Resources
+loadResources lexiconFile modelFile baseDir = do
+  lexFile <- getDataFileName lexiconFile
   cssFile <- getDataFileName "data/style.css"
-  modelFile <- getDataFileName "data/def_model"
+  modelFile <- getDataFileName modelFile
   lex <- readFile lexFile -- >> \s -> return $ parseLexicon s
   m <- readFile modelFile
   css <- readFile cssFile >>= \s -> return $ primHtml s
-  return $ Resources lex css [] "John does not believe Hesperus is Phosphorus => <p>s" m [] Nothing
+  return $ Resources lex css [] "John does not believe Hesperus is Phosphorus => <p>s" m [] Nothing baseDir
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
-                   body << inputAreaTemplate res +++
+                   body << navigation +++
+                           inputAreaTemplate res +++
                            hr +++
                            proofsAreaTemplate res
 
@@ -55,7 +57,7 @@ inputAreaTemplate res = cont << (lexiconForm res +++
                                  modelForm res +++
                                  sentenceForm res) where
   cont = form ! [ theclass "input"
-                , action "/"
+                , action "." -- (baseDir res)
                 , enctype "multipart/form-data"
                 , Text.XHtml.Strict.method "POST" ]
 
@@ -97,18 +99,41 @@ proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ 
     lterm p = h3 << (lambda2html . betaReduce . monadReduce . etaReduce . term . snd . getVal) p
     reading i = thediv ! [ theclass "model_evaluation_result" ] << pre << primHtml i
 
+navigation :: Html
+navigation =
+          thediv ! [Text.XHtml.Strict.identifier "navcontainer"] <<
+          ulist << (li << anchor ! [href "../day1/"] << primHtml "Day 1" +++
+                    li << anchor ! [href "../day2/"] << primHtml "Day 2" +++
+                    li << anchor ! [href "../day3/"] << primHtml "Day 3" +++
+                    li << anchor ! [href "../day4/"] << primHtml "Day 4" +++
+                    li << anchor ! [href "../day5/"] << primHtml "Day 5")
 
-homePage :: Resources -> ServerPart Response
-homePage res = msum [ viewForm, processForm, dir "quit" quit ]
+homePage :: ServerPart Response
+homePage = msum [ dir "day1" day1
+                , dir "day2" day2
+                , dir "day3" day3
+                , dir "day4" day4
+                , dir "day5" day5
+                , day1 ]
    where
-     quit = liftIO exitSuccess
-     viewForm :: ServerPart Response
-     viewForm =
+
+     day lexiconFile modelFile baseDir = do
+          res <- liftIO $ loadResources lexiconFile modelFile baseDir
+          msum [viewForm res, processForm res]
+
+     day1 = day "data/day1_lexicon" "data/day1_model" "day1/"
+     day2 = day "data/day2_lexicon" "data/day2_model" "day2/"
+     day3 = day "data/day3_lexicon" "data/day3_model" "day3/"
+     day4 = day "data/day4_lexicon" "data/day4_model" "day4/"
+     day5 = day "data/day5_lexicon" "data/day5_model" "day5/"
+
+     viewForm :: Resources -> ServerPart Response
+     viewForm res =
          do Happstack.Lite.method GET
             ok $ toResponse $ pageTemplate res
 
-     processForm :: ServerPart Response
-     processForm =
+     processForm :: Resources -> ServerPart Response
+     processForm res =
          do Happstack.Lite.method [GET,POST]
             raw_lex <- lookText "lexicon"
             sent <- lookText "sentence"

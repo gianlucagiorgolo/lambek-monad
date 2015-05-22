@@ -1,0 +1,14 @@
+# Standard stuff
+John           :: np                 :: john.
+does           :: (np \ s) /
+                  (np \ s)           :: \X -> X.
+not            :: (np \ s) /
+                  (np \ s)           :: negation.
+Reza           :: np                 :: reza.
+is             :: (np \ s) / np      :: is.
+
+# Perspectives
+believe        :: (np \ s) / <p>s    :: believe.
+Hesperus       :: <p>np              :: hesperus.
+Phosphorus     :: <p>np              :: phosphorus.
+Jesus          :: <p>np              :: jesus.

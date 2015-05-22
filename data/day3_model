@@ -1,0 +1,19 @@
+john = "John"
+reza = "Reza"
+
+is = relation "is"
+
+conjunction = relation "and"
+
+hesperus "John" = "Evening Star"
+hesperus _ = "Venus"
+
+phosphorus "John" = "Morning Star"
+phosphorus _ = "Venus"
+
+jesus "Reza" = "Man Jesus"
+jesus _ = "God Jesus"
+
+believe c s = relation "believe" s (c s)
+
+negation p x = "not(" ++ p x ++ ")"

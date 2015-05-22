@@ -1,0 +1,11 @@
+jlh = "John Lee Hooker"
+tbb = "The Blues Brothers"
+tennessee = "Tennessee"
+appeared_in = relation "appeared_in"
+bluesman = predicate "bluesman"
+from location pred = \x -> conjunction (relation "from" x location) (pred x)
+the pred = "iota(X," ++ pred "X" ++ ")"
+conjunction = relation "AND"
+
+
+comma pred ent = (write (pred ent)) `bind_ci` (\_ -> unit_ci ent)
