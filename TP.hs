@@ -10,6 +10,7 @@ import qualified Data.Map as Map
 import Data.Foldable hiding (concat,any,all)
 import Control.Monad.State
 import DataTypes
+import Control.Parallel (par, pseq)
 
 debShow (LeftContext l lc f r,c) = show $ (LeftContext (map formula l) (map formula lc) (formula f) (map formula r), formula c)
 debShow (RightContext l f rc r,c) = show $ (RightContext (map formula l) (formula f) (map formula rc) (map formula r), formula c)
@@ -148,6 +149,7 @@ lIL (LeftContext bigXLeft bigY f@(DF _ _ (LI a b)) bigXRight,c) = do
   x <- getAndDec >>= \j -> return $ V j
   l <- proofs (bigY,DF a_id t a)
   r <- proofs (bigXLeft ++ [DF b_id x b] ++ bigXRight,c)
+  (l,r) <- return $ l `par` (r `pseq` (l,r))
   (newBigY,a') <- return $ getVal l
   (newBigX, c') <- return $ getVal r
   b' <- return $ lookupFormula b_id newBigX
@@ -169,6 +171,7 @@ rIL (RightContext bigXLeft f@(DF _ _ (RI a b)) bigY bigXRight,c) = do
   x <- getAndDec >>= \j -> return $ V j
   l <- proofs (bigY,DF a_id t a)
   r <- proofs (bigXLeft ++ [DF b_id x b] ++ bigXRight,c)
+  (l,r) <- return $ l `par` (r `pseq` (l,r))
   (newBigY,a') <- return $ getVal l
   ((newBigX), c') <- return $ getVal r
   b' <- return $ lookupFormula b_id newBigX

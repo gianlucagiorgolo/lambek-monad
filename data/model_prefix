@@ -135,7 +135,7 @@ compressLikelihood (Likelihood p) = Likelihood $ Map.toList $ foldr fun Map.empt
 
 -- General stuff
 
-relation r x y = r ++ "(" ++ x ++ "," ++ y ++ ")"
+relation r x y = r ++ "(" ++ y ++ "," ++ x ++ ")"
 predicate p x = p ++ "(" ++ x ++ ")"
 
 -- Utils

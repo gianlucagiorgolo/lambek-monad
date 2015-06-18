@@ -30,27 +30,37 @@ data Resources = Resources { lexicon   :: String
                            , model     :: String
                            , readings  :: [String]
                            , error_msg :: Maybe String
-                           , baseDir   :: String }
+                           , baseDir   :: String
+                           , day       :: String }
+
+day1Example = "John loves Mary => s"
+day2Example = "JLH COMMA the bluesman from Tennessee appeared_in TBB => <ci>s"
+day3Example = "John does not believe Hesperus is Phosphorus => <p>s"
+day4Example = "Spain will_beat Germany and Nigeria will_beat Canada => <pr>s"
+day5Example = "Nigeria will_beat motherfucking Canada => <ci><pr>s"
 
 main = do
   serve Nothing homePage
 
-loadResources :: String -> String -> String -> IO Resources
-loadResources lexiconFile modelFile baseDir = do
+loadResources :: String -> String -> String -> String -> String -> IO Resources
+loadResources lexiconFile modelFile baseDir example day = do
   lexFile <- getDataFileName lexiconFile
   cssFile <- getDataFileName "data/style.css"
   modelFile <- getDataFileName modelFile
   lex <- readFile lexFile -- >> \s -> return $ parseLexicon s
   m <- readFile modelFile
   css <- readFile cssFile >>= \s -> return $ primHtml s
-  return $ Resources lex css [] "John does not believe Hesperus is Phosphorus => <p>s" m [] Nothing baseDir
+  return $ Resources lex css [] example m [] Nothing baseDir day
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
                    body << navigation +++
+                           titleArea res +++
                            inputAreaTemplate res +++
                            hr +++
                            proofsAreaTemplate res
+
+titleArea res = h1 (primHtml $ day res)
 
 inputAreaTemplate :: Resources -> Html
 inputAreaTemplate res = cont << (lexiconForm res +++
@@ -117,15 +127,15 @@ homePage = msum [ dir "day1" day1
                 , day1 ]
    where
 
-     day lexiconFile modelFile baseDir = do
-          res <- liftIO $ loadResources lexiconFile modelFile baseDir
+     day lexiconFile modelFile baseDir example day = do
+          res <- liftIO $ loadResources lexiconFile modelFile baseDir example day
           msum [viewForm res, processForm res]
 
-     day1 = day "data/day1_lexicon" "data/day1_model" "day1/"
-     day2 = day "data/day2_lexicon" "data/day2_model" "day2/"
-     day3 = day "data/day3_lexicon" "data/day3_model" "day3/"
-     day4 = day "data/day4_lexicon" "data/day4_model" "day4/"
-     day5 = day "data/day5_lexicon" "data/day5_model" "day5/"
+     day1 = day "data/day1_lexicon" "data/day1_model" "day1/" day1Example "Day 1"
+     day2 = day "data/day2_lexicon" "data/day2_model" "day2/" day2Example "Day 2"
+     day3 = day "data/day3_lexicon" "data/day3_model" "day3/" day3Example "Day 3"
+     day4 = day "data/day4_lexicon" "data/day4_model" "day4/" day4Example "Day 4"
+     day5 = day "data/day5_lexicon" "data/day5_model" "day5/" day5Example "Day 5"
 
      viewForm :: Resources -> ServerPart Response
      viewForm res =

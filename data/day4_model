@@ -1,34 +1,13 @@
-john = "John"
-
-is = relation "is"
-
-conjunction = relation "and"
-
-hesperus "John" = "Evening Star"
-hesperus _ = "Venus"
-
-phosphorus "John" = "Morning Star"
-phosphorus _ = "Venus"
-
-believe c s = relation "believe" s (c s)
-
-forall r p = "forall(X," ++ r "X" ++ "," ++ p "X" ++ ")"
-
 neg p x = "not(" ++ p x ++ ")"
 
-fucking p = bind_ci (write (forall p (predicate "bad"))) (\_ -> unit_ci p)
-motherfucking x = bind_ci (write (predicate "bad" x)) (\_ -> unit_ci x)
-
-
-
-will_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
+prob_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
                                  ,(relation "drawsWith" subj obj,d)
                                  ,(relation "losesAgainst" subj obj,l)] where
                                     v = predictVictory subj obj
                                     d = predictDraw subj obj
                                     l = predictLoss subj obj
 
-will_crush obj subj =
+lklh_beat obj subj =
   Likelihood [(relation "winsAgainst" subj obj,toSimpleSemiring v)
              ,(relation "drawsWith" subj obj,toSimpleSemiring d)
              ,(relation "losesAgainst" subj obj,toSimpleSemiring l)] where
@@ -40,3 +19,5 @@ germany = "Germany"
 spain = "Spain"
 canada = "Canada"
 nigeria = "Nigeria"
+
+conjunction = relation "AND"
