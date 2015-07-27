@@ -11,6 +11,7 @@ import Data.Either
 import           Data.Text           (Text)
 import           Data.Text.Lazy      (unpack)
 import           Data.Char
+import System.Environment
 import           DataTypes
 import           Happstack.Lite
 import           Parsers
@@ -31,7 +32,8 @@ data Resources = Resources { lexicon   :: String
                            , readings  :: [String]
                            , error_msg :: Maybe String
                            , baseDir   :: String
-                           , day       :: String }
+                           , day       :: String
+                           , dayNotes  :: String }
 
 day1Example = "John loves Mary => s"
 day2Example = "JLH COMMA the bluesman from Tennessee appeared_in TBB => <ci>s"
@@ -40,22 +42,29 @@ day4Example = "Spain will_beat Germany and Nigeria will_beat Canada => <pr>s"
 day5Example = "Nigeria will_beat motherfucking Canada => <ci><pr>s"
 
 main = do
-  serve Nothing homePage
+  args <- getArgs
+  p <- return $ case args of
+                  [] -> 8000
+                  (p : _) -> read p 
+  serve (Just defaultServerConfig{port = p}) homePage
 
-loadResources :: String -> String -> String -> String -> String -> IO Resources
-loadResources lexiconFile modelFile baseDir example day = do
+loadResources :: String -> String -> String -> String -> String -> String -> IO Resources
+loadResources lexiconFile modelFile baseDir example day notesFile = do
   lexFile <- getDataFileName lexiconFile
   cssFile <- getDataFileName "data/style.css"
   modelFile <- getDataFileName modelFile
+  notesFile <- getDataFileName notesFile
   lex <- readFile lexFile -- >> \s -> return $ parseLexicon s
   m <- readFile modelFile
   css <- readFile cssFile >>= \s -> return $ primHtml s
-  return $ Resources lex css [] example m [] Nothing baseDir day
+  notes <- readFile notesFile
+  return $ Resources lex css [] example m [] Nothing baseDir day notes
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
                    body << navigation +++
                            titleArea res +++
+                           notesArea res +++
                            inputAreaTemplate res +++
                            hr +++
                            proofsAreaTemplate res
@@ -91,6 +100,11 @@ sentenceForm res =
           , theclass "mybutton"
           , value "Parse" ]
 
+notesArea :: Resources -> Html
+notesArea res =
+  h1 (primHtml "Notes") +++
+  thediv ! [ theclass "notesArea" ] << primHtml (dayNotes res)
+
 modelForm :: Resources -> Html
 modelForm res = h1 (primHtml "Model") +++
                 textarea ! [ theclass "mono_textarea"
@@ -102,11 +116,11 @@ proofsAreaTemplate :: Resources -> Html
 proofsAreaTemplate res | isJust (error_msg res) = (h1 << primHtml "Error:") +++ pre << primHtml (fromJust $ error_msg res)
                        | otherwise = proofsTitle +++ ps where
   proofsTitle = h3 << (primHtml $ (show $ length $ Main.proofs res) ++ " proof(s) for \"" ++ (cleanUpSentence $ sentence res) ++"\"" )
-  ps = mconcat $ map f $ zip (Main.proofs res) (readings res)
+  ps = mconcat $ map f $ zip3 (Main.proofs res) (readings res) [1..]
   cleanUpSentence s = reverse $ dropWhile isSpace $ reverse $ takeWhile (/= '=') s
-  f (p,i) = thediv ! [theclass "proof"] << (lterm p +++ reading i +++ proof p) where
-    proof = proof2html
-    lterm p = h3 << (lambda2html . betaReduce . monadReduce . etaReduce . term . snd . getVal) p
+  f (p,i,n) = thediv ! [ theclass "proofgroup" ] << (h3 ! [ theclass "prooftitle" ] << (primHtml $ "Proof " ++ show n)) +++ (lterm p +++ reading i +++ proof p) where
+    proof p = thediv ! [ theclass "proof" ] << proof2html p
+    lterm p = thediv ! [ theclass "reading" ] << paragraph << (lambda2html . betaReduce . monadReduce . etaReduce . term . snd . getVal) p
     reading i = thediv ! [ theclass "model_evaluation_result" ] << pre << primHtml i
 
 navigation :: Html
@@ -127,15 +141,15 @@ homePage = msum [ dir "day1" day1
                 , day1 ]
    where
 
-     day lexiconFile modelFile baseDir example day = do
-          res <- liftIO $ loadResources lexiconFile modelFile baseDir example day
+     day lexiconFile modelFile baseDir example day notesFile = do
+          res <- liftIO $ loadResources lexiconFile modelFile baseDir example day notesFile
           msum [viewForm res, processForm res]
 
-     day1 = day "data/day1_lexicon" "data/day1_model" "day1/" day1Example "Day 1"
-     day2 = day "data/day2_lexicon" "data/day2_model" "day2/" day2Example "Day 2"
-     day3 = day "data/day3_lexicon" "data/day3_model" "day3/" day3Example "Day 3"
-     day4 = day "data/day4_lexicon" "data/day4_model" "day4/" day4Example "Day 4"
-     day5 = day "data/day5_lexicon" "data/day5_model" "day5/" day5Example "Day 5"
+     day1 = day "data/day1_lexicon" "data/day1_model" "day1/" day1Example "Day 1" "data/day1_notes.html"
+     day2 = day "data/day2_lexicon" "data/day2_model" "day2/" day2Example "Day 2" "data/day2_notes.html"
+     day3 = day "data/day3_lexicon" "data/day3_model" "day3/" day3Example "Day 3" "data/day3_notes.html"
+     day4 = day "data/day4_lexicon" "data/day4_model" "day4/" day4Example "Day 4" "data/day4_notes.html"
+     day5 = day "data/day5_lexicon" "data/day5_model" "day5/" day5Example "Day 5" "data/day5_notes.html"
 
      viewForm :: Resources -> ServerPart Response
      viewForm res =

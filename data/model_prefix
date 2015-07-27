@@ -4,6 +4,7 @@ module Model where
 import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, getContents, interact, readFile, writeFile, appendFile, readIO, readLn , ioError, userError)
 import qualified Data.Map as Map
 import Data.List
+import Text.Printf
 import FootballDB
 
 -- Perspective monad

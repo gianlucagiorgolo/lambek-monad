@@ -1,0 +1,49 @@
+<h3>Lexicon specification</h3>
+<p>The BNF grammar for the lexicon is defined as follows (space characters are irrelevant):</p>
+<pre>
+Lexicon := LexicalEntry+
+LexicalEntry := Word '::' SyntacticCategory '::' LambdaTerm '.'
+Word := [a-zA-Z][a-zA-Z0-9_-]*
+SyntacticCategory := ['('] [Atom | LeftImplication | RightImplication | Monad] [')]
+Atom := [a-z][a-zA-Z0-9_-]*
+LeftImplication := SyntacticCategory '\' SyntacticCategory
+RightImplication := SyntacticCategory '/' SyntacticCategory
+Monad := '<' Modality '>' SyntacticCategory
+Modality := ['ci' | 'p' | 'pr' | 'lh']
+LambdaTerm := ['('] [Variable | Constant | LambdaAbstraction | Pair | Projection | Unit | Bind | Application] [')']
+Variable := [A-Z][a-zA-Z0-9_-]*
+Constant := [a-z][a-zA-Z0-9_-]*
+LambdaAbstraction := '\' Variable '->' LambdaTerm
+Pair := '[' LambdaTerm ',' LambdaTerm ']'
+Projection := ['p1' | 'p2'] '(' LambdaTerm ')'
+Unit := 'eta' ['^' Modality] '(' LambdaTerm ')'
+Bind := LambdaTerm ':*:' ['^' Modality] LambdaTerm
+Application := LambdaTerm LambdaTerm
+</pre>
+<p>Regarding syntactic categories, the "diamond" binds tighter than the implications, so something like <code>&lt;ci&gt;s / s</code> is parsed as <code>(&lt;ci&gt;s) / s</code>, rather than <code>&lt;ci&gt;(s / s)</code>.</p>
+
+<h3>The model</h3>
+<p>The model is a collection of Haskell definitions, which are then used to compute the meaning of an expression.</p>
+
+<p>In all the examples presented here, the pure values are just flat strings (entities are strings, propositions are strings and so on), but you are not restricted to this type of setting. The only requirement is that the types you want to compute should be an instance of the <code>Show</code> class.</p>
+
+<p>For example we could create a mini database about loving relationships between a number of entities and get as the meaning of our sentences a truth-value:</p>
+<pre>
+data Entity = John | Mary | Bill deriving Show
+
+love :: Entity -> Entity -> Bool
+love Mary John = True
+love Bill Mary = True
+love _ _ = False
+</pre>
+
+<p>But sticking with our flat representation, there are a couple of predefined "magical" functions that make the job of writing the definitions a bit easier:</p>
+
+<table>
+  <tr><td><code>predicate</code></td><td>This can be used to create a unary predicate, just pass it the name of the predicate as a string.</td></tr>
+  <tr><td><code>relation</code></td><td>Similarly, this one creates a binary relation when passed its name.</td></tr>
+</table>
+
+<h3>Sentence to parse</h3>
+<p>Here we specify the sentence we want to parse. The sentence is a list of words defined in the Lexicon followed by the symbol <code>=&gt;</code> and finally by the syntactic type we are trying to parse</p>
+<p>The sentence in fact does not need to be a sentence, it can be any expression</p>

@@ -1,16 +1,16 @@
 neg p x = "not(" ++ p x ++ ")"
 
-prob_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
-                                 ,(relation "drawsWith" subj obj,d)
-                                 ,(relation "losesAgainst" subj obj,l)] where
+prob_beat obj subj = Probability [(relation "winsAgainst" obj subj,v)
+                                 ,(relation "drawsWith" obj subj,d)
+                                 ,(relation "losesAgainst" obj subj,l)] where
                                     v = predictVictory subj obj
                                     d = predictDraw subj obj
                                     l = predictLoss subj obj
 
 lklh_beat obj subj =
-  Likelihood [(relation "winsAgainst" subj obj,toSimpleSemiring v)
-             ,(relation "drawsWith" subj obj,toSimpleSemiring d)
-             ,(relation "losesAgainst" subj obj,toSimpleSemiring l)] where
+  Likelihood [(relation "winsAgainst" obj subj,toSimpleSemiring v)
+             ,(relation "drawsWith" obj subj,toSimpleSemiring d)
+             ,(relation "losesAgainst" obj subj,toSimpleSemiring l)] where
                 v = predictVictory subj obj
                 d = predictDraw subj obj
                 l = predictLoss subj obj

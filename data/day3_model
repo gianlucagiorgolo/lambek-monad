@@ -14,6 +14,6 @@ phosphorus _ = "Venus"
 jesus "Reza" = "Man Jesus"
 jesus _ = "God Jesus"
 
-believe c s = relation "believe" s (c s)
+believe c s = relation "believe" (c s) s
 
 negation p x = "not(" ++ p x ++ ")"

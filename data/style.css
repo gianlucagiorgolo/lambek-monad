@@ -36,8 +36,13 @@ td
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; font-style: italic;
   }
 
-.proof{
+.proofgroup{
   padding: 10px;
+}
+
+.constant{
+  font-weight: bold;
+
 }
 
 .title
@@ -57,9 +62,46 @@ td
   font-family:"Lucida Console", Monaco, monospace
   }
 
-.model_evaluation_result{
-  padding: 5px;
-  font-family: "Lucida Console", Monaco, monospace;
+  .model_evaluation_result{
+    padding-left: 15px;
+    font-family: "Lucida Console", Monaco, monospace;
+  }
+
+  .proof{
+
+  	padding-left: 15px;
+
+  }
+
+  .reading{
+  	padding-left: 15px;
+  	color: #0000cc;
+  }
+
+  .prooftitle{
+
+  	color: #cc0000;
+
+  }
+
+
+.turnstile{
+font-style: normal;
+color: #00cc00;
+}
+
+.formula{
+  color: #cc0000;
+}
+
+.term{
+  color: #0000cc;
+  }
+
+.notesArea{
+  border-radius: 10px;
+  border: 1px solid #eee;
+  padding: 10px;
 }
 
 .myButton {

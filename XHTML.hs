@@ -36,7 +36,7 @@ lab2html TensL = primHtml "&otimes;L"
 lab2html TensR = primHtml "&otimes;R"
 
 lambda2html :: LambdaTerm -> Html
-lambda2html (C c) = bold << c
+lambda2html (C c) = thespan ! [ theclass "constant" ] << c
 lambda2html (V n) | n < length sanevars && n >= 0 =
 		   toHtml $ sanevars !! n
                   | otherwise = toHtml $ "v" ++ show n
@@ -86,9 +86,9 @@ lambda2html (SecondProjection a) =
         toHtml ")"
 
 decoratedSeq2html :: DecoratedSequent -> Html
-decoratedSeq2html (gamma,c) = mconcat left +++ toHtml " => " +++ f c where
+decoratedSeq2html (gamma,c) = mconcat left +++ (thespan ! [theclass "turnstile"] << primHtml " &#x22A2; ") +++ f c where
     left = intersperse (toHtml ", ") $ map f gamma
-    f (DF _ lt f) = lambda2html (betaReduce $ monadReduce $ etaReduce $ lt) +++ toHtml " : " +++ formula2html f
+    f (DF _ lt f) = (thespan ! [theclass "term"] << lambda2html (betaReduce $ monadReduce $ etaReduce $ lt)) +++ (thespan << (toHtml " : " +++ (thespan ! [theclass "formula"] << formula2html f)))
 
 formula2html :: Formula -> Html
 formula2html (Atom a) = toHtml a
