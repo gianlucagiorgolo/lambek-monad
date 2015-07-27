@@ -164,12 +164,12 @@ homePage = msum [ dir "day1" day1
             m <- lookText "model"
             lex <- return $ parseLexicon $ unpack raw_lex
             -- we verify the lexicon
-            if isLeft lex then
+            if Main.isLeft lex then
               ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = [], sentence= unpack sent, model = unpack m, readings = [], error_msg = Just $ fromLeft lex}
               else do
             seq <- return $ parseSequent (unpack sent) $ fromRight lex
             -- we verify the sequent
-            if isLeft seq then
+            if Main.isLeft seq then
               ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = [], sentence= unpack sent, model = unpack m, readings = [], error_msg = Just $ fromLeft seq}
               else do
             ps <- return $ evaluateState (toDecoratedWithConstants (fromRight seq) >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
@@ -210,3 +210,8 @@ nubByShortest len eq l = aux l [] where
          Just a' -> case len a < len a' of
                         False -> aux as acc
                         True -> aux as (a : delete a' acc)
+
+
+isLeft :: Either a b -> Bool
+isLeft (Left _) = True
+isLeft _ = False
