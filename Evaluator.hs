@@ -7,9 +7,9 @@ import System.FilePath
 import Paths_lambek_monad
 
 -- | @eval model term@ evaluates the lambda term given the model module
-evaluate :: String -> LambdaTerm -> IO String
-evaluate model term = do
-  prefix <- getDataFileName "data/model_prefix" >>= \fn -> readFile fn
+evaluate :: String -> String -> LambdaTerm -> IO String
+evaluate model modelPrefFile term = do
+  prefix <- getDataFileName modelPrefFile >>= \fn -> readFile fn
   tmpDir <- getTemporaryDirectory
   modFile <- return $ joinPath [tmpDir, "Model.hs"]
   writeFile modFile $ prefix ++ model

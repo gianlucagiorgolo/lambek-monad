@@ -33,7 +33,8 @@ data Resources = Resources { lexicon   :: String
                            , error_msg :: Maybe String
                            , baseDir   :: String
                            , day       :: String
-                           , dayNotes  :: String }
+                           , dayNotes  :: String
+                           , modelPref :: String }
 
 day1Example = "John loves Mary => s"
 day2Example = "JLH COMMA the bluesman from Tennessee appeared_in TBB => <ci>s"
@@ -45,11 +46,11 @@ main = do
   args <- getArgs
   p <- return $ case args of
                   [] -> 8000
-                  (p : _) -> read p 
+                  (p : _) -> read p
   serve (Just defaultServerConfig{port = p}) homePage
 
-loadResources :: String -> String -> String -> String -> String -> String -> IO Resources
-loadResources lexiconFile modelFile baseDir example day notesFile = do
+loadResources :: String -> String -> String -> String -> String -> String -> String -> IO Resources
+loadResources lexiconFile modelFile baseDir example day notesFile modelPrefFile = do
   lexFile <- getDataFileName lexiconFile
   cssFile <- getDataFileName "data/style.css"
   modelFile <- getDataFileName modelFile
@@ -58,7 +59,7 @@ loadResources lexiconFile modelFile baseDir example day notesFile = do
   m <- readFile modelFile
   css <- readFile cssFile >>= \s -> return $ primHtml s
   notes <- readFile notesFile
-  return $ Resources lex css [] example m [] Nothing baseDir day notes
+  return $ Resources lex css [] example m [] Nothing baseDir day notes modelPrefFile
 
 pageTemplate :: Resources -> Html
 pageTemplate res = header << style << css_style res +++
@@ -141,15 +142,15 @@ homePage = msum [ dir "day1" day1
                 , day1 ]
    where
 
-     day lexiconFile modelFile baseDir example day notesFile = do
-          res <- liftIO $ loadResources lexiconFile modelFile baseDir example day notesFile
+     day lexiconFile modelFile baseDir example day notesFile modelPrefFile= do
+          res <- liftIO $ loadResources lexiconFile modelFile baseDir example day notesFile modelPrefFile
           msum [viewForm res, processForm res]
 
-     day1 = day "data/day1_lexicon" "data/day1_model" "day1/" day1Example "Day 1" "data/day1_notes.html"
-     day2 = day "data/day2_lexicon" "data/day2_model" "day2/" day2Example "Day 2" "data/day2_notes.html"
-     day3 = day "data/day3_lexicon" "data/day3_model" "day3/" day3Example "Day 3" "data/day3_notes.html"
-     day4 = day "data/day4_lexicon" "data/day4_model" "day4/" day4Example "Day 4" "data/day4_notes.html"
-     day5 = day "data/day5_lexicon" "data/day5_model" "day5/" day5Example "Day 5" "data/day5_notes.html"
+     day1 = day "data/day1_lexicon" "data/day1_model" "day1/" day1Example "Day 1" "data/day1_notes.html" "data/model_prefix"
+     day2 = day "data/day2_lexicon" "data/day2_model" "day2/" day2Example "Day 2" "data/day2_notes.html" "data/model_prefix"
+     day3 = day "data/day3_lexicon" "data/day3_model" "day3/" day3Example "Day 3" "data/day3_notes.html" "data/model_prefix"
+     day4 = day "data/day4_lexicon" "data/day4_model" "day4/" day4Example "Day 4" "data/day4_notes.html" "data/model_prefix_with_db"
+     day5 = day "data/day5_lexicon" "data/day5_model" "day5/" day5Example "Day 5" "data/day5_notes.html" "data/model_prefix_with_db"
 
      viewForm :: Resources -> ServerPart Response
      viewForm res =
@@ -174,7 +175,7 @@ homePage = msum [ dir "day1" day1
               else do
             ps <- return $ evaluateState (toDecoratedWithConstants (fromRight seq) >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
             ps <- return $ nubByShortest (lambdaTermLength . term . snd . getVal) (\x y -> simplifiedEquivalentDecoratedSequent (getVal x) (getVal y)) $ map sanitizeVars ps
-            rs <- mapM (\p -> liftIO $ evaluate (unpack m) (term $ snd $ getVal p)) ps
+            rs <- mapM (\p -> liftIO $ evaluate (unpack m) (modelPref res) (term $ snd $ getVal p)) ps
             ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = ps, sentence= unpack sent, model = unpack m, readings = rs}
 
 

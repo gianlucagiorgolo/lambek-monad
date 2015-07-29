@@ -5,7 +5,7 @@ import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, getCo
 import qualified Data.Map as Map
 import Data.List
 import Text.Printf
--- import FootballDB
+import FootballDB
 
 -- Perspective monad
 
