@@ -1,6 +1,6 @@
 module Evaluator where
 
-import Language.Haskell.Interpreter
+import BrokenLanguage.Haskell.Interpreter
 import System.Directory
 import DataTypes
 import System.FilePath

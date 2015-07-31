@@ -21,6 +21,9 @@ import           TP
 import           XHTML
 import Evaluator
 
+import Control.Concurrent
+import Control.Concurrent.MVar
+
 -- for development
 import System.Exit
 
@@ -175,11 +178,18 @@ homePage = msum [ dir "day1" day1
               else do
             ps <- return $ evaluateState (toDecoratedWithConstants (fromRight seq) >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
             ps <- return $ nubByShortest (lambdaTermLength . term . snd . getVal) (\x y -> simplifiedEquivalentDecoratedSequent (getVal x) (getVal y)) $ map sanitizeVars ps
-            rs <- mapM (\p -> liftIO $ evaluate (unpack m) (modelPref res) (term $ snd $ getVal p)) ps
+            rs <- mapM (\p -> liftIO $ performEvaluation (unpack m) (modelPref res) (term $ snd $ getVal p)) ps
             ok $ toResponse $ pageTemplate res{ Main.lexicon = unpack raw_lex, Main.proofs = ps, sentence= unpack sent, model = unpack m, readings = rs}
 
 
-
+-- |This function performs the evaluation in a different thread, hopefully overcoming the problems with hint
+performEvaluation :: String -> String -> LambdaTerm -> IO String
+performEvaluation model modelPrefFile term = do
+  storage <- newEmptyMVar
+  forkIO $ do
+    s <- evaluate model modelPrefFile term
+    putMVar storage s
+  readMVar storage
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a
