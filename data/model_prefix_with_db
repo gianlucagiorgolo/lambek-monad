@@ -75,7 +75,14 @@ class Semiring sr where
   plus :: sr -> sr -> sr
   times :: sr -> sr -> sr
 
-data SimpleSemiring = I | U | P | L | C deriving (Show, Eq, Ord, Enum, Bounded)
+data SimpleSemiring = I | U | P | L | C deriving (Eq, Ord, Enum, Bounded)
+
+instance Show SimpleSemiring where
+  show I = "impossible"
+  show U = "unlikely"
+  show P = "possible"
+  show L = "likely"
+  show C = "certain"
 
 minus :: SimpleSemiring -> SimpleSemiring
 minus I = C

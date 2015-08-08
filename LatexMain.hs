@@ -8,13 +8,20 @@ import DataTypes
 import Data.List
 
 main = do
-	(lexFile : sentence : _) <- getArgs
+	(lexFile : sentence : _) <- args
 	lexContents <- readFile lexFile
 	(Right lex) <- return $ parseLexicon lexContents
 	sequent <- return $ parseSequent sentence lex
 	ps <- return $ evaluateState (toDecoratedWithConstants (fromRight sequent) >>= \(ds,m) -> TP.proofs ds >>= \p -> return $ replaceWithConstants p m) startState
 	ps <- return $ nubByShortest (lambdaTermLength . term . snd . getVal) (\x y -> simplifiedEquivalentDecoratedSequent (getVal x) (getVal y)) $ map sanitizeVars ps
 	mapM_ (\p -> putStrLn (proof2latex p) >> putStrLn "") ps
+
+args :: IO [String]
+args = do
+   as <- getArgs
+   case length as == 2 of
+     True -> return as
+     False -> error "Usage: CMD LEXICON_FILE \"SENTENCE\""
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a

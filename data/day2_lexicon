@@ -1,11 +1,11 @@
 # Standard stuff
-JLH :: np :: jlh.
+JLH         :: np            :: jlh.
 appeared_in :: (np \ s) / np :: appeared_in.
-TBB :: np :: tbb.
-bluesman :: n :: bluesman.
-from :: (n \ n) / np :: from.
-Tennessee :: np :: tennessee.
-the :: X / X :: \X -> X.
+TBB         :: np            :: tbb.
+bluesman    :: n             :: bluesman.
+from        :: (n \ n) / np  :: from.
+Tennessee   :: np            :: tennessee.
+the         :: (np \ s) / n  :: \X -> X.
 
 # Conventional implicatures
-COMMA :: (np \ <ci>np) / n :: comma.
+COMMA       :: (np \ <ci>np) / (np \ s) :: comma.

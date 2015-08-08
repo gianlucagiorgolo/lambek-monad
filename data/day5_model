@@ -21,20 +21,15 @@ motherfucking x = bind_ci (write (predicate "bad" x)) (\_ -> unit_ci x)
 
 
 
-will_beat obj subj = Probability [(relation "winsAgainst" subj obj,v)
-                                 ,(relation "drawsWith" subj obj,d)
-                                 ,(relation "losesAgainst" subj obj,l)] where
-                                    v = predictVictory subj obj
-                                    d = predictDraw subj obj
-                                    l = predictLoss subj obj
+prob_beat obj subj = Probability [(relation "winsAgainst" obj subj, predictVictory subj obj)
+                                 ,(relation "drawsWith" obj subj, predictDraw subj obj)
+                                 ,(relation "losesAgainst" obj subj, predictLoss subj obj)]
 
-will_crush obj subj =
-  Likelihood [(relation "winsAgainst" subj obj,toSimpleSemiring v)
-             ,(relation "drawsWith" subj obj,toSimpleSemiring d)
-             ,(relation "losesAgainst" subj obj,toSimpleSemiring l)] where
-                v = predictVictory subj obj
-                d = predictDraw subj obj
-                l = predictLoss subj obj
+
+lklh_beat obj subj =
+  Likelihood [(relation "winsAgainst" obj subj,toSimpleSemiring (predictVictory subj obj))
+             ,(relation "drawsWith" obj subj,toSimpleSemiring (predictDraw subj obj))
+             ,(relation "losesAgainst" obj subj,toSimpleSemiring (predictLoss subj obj))]
 
 germany = "Germany"
 spain = "Spain"

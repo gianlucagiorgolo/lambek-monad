@@ -1,10 +1,17 @@
 jlh = "John Lee Hooker"
+
 tbb = "The Blues Brothers"
+
 tennessee = "Tennessee"
+
 appeared_in = relation "appeared_in"
+
 bluesman = predicate "bluesman"
+
 from location pred = \x -> conjunction (relation "from" location x) (pred x)
+
 the pred = "iota(X," ++ pred "X" ++ ")"
+
 conjunction = relation "AND"
 
 

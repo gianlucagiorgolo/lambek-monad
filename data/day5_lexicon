@@ -29,7 +29,7 @@ fucking        :: <ci>n / n          :: fucking.
 motherfucking  :: <ci>np / np        :: motherfucking.
 
 # Standard Probability
-will_beat      :: (np \ <pr>s) / np  :: will_beat.
+will_beat      :: (np \ <pr>s) / np  :: prob_beat.
 
 # Likelihood
-will_crush     :: (np \ <lh>s) / np  :: will_crush.
+will_crush     :: (np \ <lh>s) / np  :: lklh_beat.

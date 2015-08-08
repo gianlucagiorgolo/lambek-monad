@@ -1,19 +1,16 @@
 neg p x = "not(" ++ p x ++ ")"
 
-prob_beat obj subj = Probability [(relation "winsAgainst" obj subj,v)
-                                 ,(relation "drawsWith" obj subj,d)
-                                 ,(relation "losesAgainst" obj subj,l)] where
-                                    v = predictVictory subj obj
-                                    d = predictDraw subj obj
-                                    l = predictLoss subj obj
+
+prob_beat obj subj = Probability [(relation "winsAgainst" obj subj, predictVictory subj obj)
+                                 ,(relation "drawsWith" obj subj, predictDraw subj obj)
+                                 ,(relation "losesAgainst" obj subj, predictLoss subj obj)]
+
 
 lklh_beat obj subj =
-  Likelihood [(relation "winsAgainst" obj subj,toSimpleSemiring v)
-             ,(relation "drawsWith" obj subj,toSimpleSemiring d)
-             ,(relation "losesAgainst" obj subj,toSimpleSemiring l)] where
-                v = predictVictory subj obj
-                d = predictDraw subj obj
-                l = predictLoss subj obj
+  Likelihood [(relation "winsAgainst" obj subj,toSimpleSemiring (predictVictory subj obj))
+             ,(relation "drawsWith" obj subj,toSimpleSemiring (predictDraw subj obj))
+             ,(relation "losesAgainst" obj subj,toSimpleSemiring (predictLoss subj obj))]
+
 
 germany = "Germany"
 spain = "Spain"
